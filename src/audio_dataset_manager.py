@@ -5,6 +5,7 @@ from pydub import AudioSegment
 from dataclasses import dataclass
 import os
 import whisper
+import shutil
 
 
 @dataclass
@@ -116,6 +117,13 @@ class AudioProcessor():
                 counter = self.split_and_transcribe(midpoint, counter)
         else:
             print('No silence detected')
+    
+    def clean_up(self):
+        temp_segment_folder = os.path.join(self.config.output_folder, 'temp')
+        if os.path.exists(temp_segment_folder):
+            shutil.rmtree(temp_segment_folder)
+            print("Temporary folder deleted:", temp_segment_folder)
+
 
 
 
@@ -146,27 +154,32 @@ def define_process_config(filepath, time_threshold, whisper_model, output_folder
     )
 
     
-def main(filepath, time_threshold, whisper_model, output_folder, prefix=None):
-    process_config = define_process_config(filepath, time_threshold, whisper_model, output_folder, prefix)
+def main(files, time_threshold, whisper_model, output_folder, prefix=None):
+    for file in files:
+        process_config = define_process_config(file, time_threshold, whisper_model, output_folder, prefix)
 
-    if not os.path.exists(process_config.output_folder):
-        os.makedirs(process_config.output_folder)
-    
+        if not os.path.exists(process_config.output_folder):
+            os.makedirs(process_config.output_folder)
+        
 
-    ap = AudioProcessor(process_config)
-    counter = 1
+        ap = AudioProcessor(process_config)
+        counter = 1
 
-    if silence_list := ap.detect_silences():
-        midpoints = ap.extract_midpoints(silence_list)
-        start_point = 0
+        if silence_list := ap.detect_silences():
+            midpoints = ap.extract_midpoints(silence_list)
+            start_point = 0
 
 
-        for end_point in midpoints:
-            counter = ap.split_and_transcribe(start_point, end_point, counter)
-            start_point = end_point
+            for end_point in midpoints:
+                counter = ap.split_and_transcribe(start_point, end_point, counter)
+                start_point = end_point
+            
+            ap.clean_up()
 
-    else:
-        print('No silences detected')
+        else:
+            print('No silences detected')
+        
+        #ap.clean_up()
     
 
 
@@ -174,8 +187,10 @@ def main(filepath, time_threshold, whisper_model, output_folder, prefix=None):
 demo = gr.Interface(
 fn=main,
 inputs=[
-    gr.Audio(sources="upload", 
-                type="filepath"),
+    gr.File(file_count="multiple", 
+                type="filepath",
+                label="Choose the files to segment and transcribe"),
+                
     gr.Number(label = 'Time Threshold',
                 info = 'Choose the approximate duration of a silence in the audio'), 
     gr.Dropdown(
