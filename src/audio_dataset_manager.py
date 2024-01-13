@@ -126,6 +126,11 @@ def define_process_config(filepath, time_threshold, whisper_model, output_folder
     usable_folder = os.path.join(output_folder, 'Usable_Audios')
     not_usable_folder = os.path.join(output_folder, 'Not_Usable_Audios')
     input_format = filepath.split('.')[-1].lower()
+
+    # Extract filename without extension to use as prefix if not provided
+    if not prefix:
+        prefix = os.path.basename(filepath).rsplit('.', 1)[0]
+    
    
     return AudioProcess_Config(
         filepath=filepath,
@@ -189,7 +194,7 @@ inputs=[
         info = 'Type the path where you want to output the segmented audios)'
     ),
         gr.Textbox(
-        label = 'Prefix',
+        label = 'Prefix (Optional)',
         info = 'Choose a prefix for your extracted audio segments (like the name and chapter of the book)'
     )
     
