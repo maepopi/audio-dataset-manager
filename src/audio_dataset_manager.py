@@ -18,7 +18,6 @@ class AudioProcess_Config():
     usable_folder: str
     not_usable_folder: str
     time_threshold: float
-    whisper_model: str
     prefix : str
     
 class AudioProcessor():
@@ -85,26 +84,24 @@ class AudioProcessor():
         return re.sub(r'[ ?!,;."]', "_", transcription_text[:150])
     
         
-    def export_segment(self, segment, counter, transcription):
+    def export_segment(self, segment, counter):
         """Exports the processed segment with a formatted name."""
         padded_index = str(counter).zfill(4)
-        segment_path = os.path.join(self.config.output_folder, f"{self.config.prefix}_{padded_index}_{transcription}.{self.config.export_format}")
+        segment_path = os.path.join(self.config.output_folder, f"{self.config.prefix}_{padded_index}.{self.config.export_format}")
         segment.export(segment_path, format=self.config.export_format)
         print(f"Saved {segment_path}")
         return segment_path
 
 
-    def split_and_transcribe(self, start_point, end_point, counter):
+    def split_audio(self, start_point, end_point, counter):
         segment_path, segment_length = self.process_segment(start_point, end_point)
-        transcriptions_dict = {}
-
+     
         if segment_length > 11000:
             counter = self.handle_long_segment(segment_path, counter)
         
         else:
-            transcription = self.transcribe_segment(segment_path)
-            segment_path = self.export_segment(self.audio[start_point*1000:end_point*1000], counter, transcription)
-            transcriptions_dict[segment_path] = transcription
+
+            segment_path = self.export_segment(self.audio[start_point*1000:end_point*1000], counter)
             counter +=1
         
         return counter
@@ -114,7 +111,7 @@ class AudioProcessor():
         if new_silence_periods := self.detect_silences(segment_path, "-23dB"):
             new_midpoints = self.extract_midpoints(new_silence_periods)
             for midpoint in new_midpoints:
-                counter = self.split_and_transcribe(midpoint, counter)
+                counter = self.split_audio(midpoint, counter)
         else:
             print('No silence detected')
     
@@ -130,14 +127,11 @@ class AudioProcessor():
 
 
 
-def define_process_config(filepath, time_threshold, whisper_model, output_folder, prefix):
+def define_process_config(filepath, time_threshold, output_folder):
     usable_folder = os.path.join(output_folder, 'Usable_Audios')
     not_usable_folder = os.path.join(output_folder, 'Not_Usable_Audios')
     input_format = filepath.split('.')[-1].lower()
-
-    # Extract filename without extension to use as prefix if not provided
-    if not prefix:
-        prefix = os.path.basename(filepath).rsplit('.', 1)[0]
+    prefix = os.path.basename(filepath).rsplit('.', 1)[0]
     
    
     return AudioProcess_Config(
@@ -148,15 +142,14 @@ def define_process_config(filepath, time_threshold, whisper_model, output_folder
         usable_folder=usable_folder,
         not_usable_folder=not_usable_folder,
         time_threshold=time_threshold,
-        whisper_model=whisper_model,
         prefix=prefix
         
     )
 
     
-def main(files, time_threshold, whisper_model, output_folder, prefix=None):
+def main(files, time_threshold, output_folder):
     for file in files:
-        process_config = define_process_config(file, time_threshold, whisper_model, output_folder, prefix)
+        process_config = define_process_config(file, time_threshold, output_folder)
 
         if not os.path.exists(process_config.output_folder):
             os.makedirs(process_config.output_folder)
@@ -171,7 +164,7 @@ def main(files, time_threshold, whisper_model, output_folder, prefix=None):
 
 
             for end_point in midpoints:
-                counter = ap.split_and_transcribe(start_point, end_point, counter)
+                counter = ap.split_audio(start_point, end_point, counter)
                 start_point = end_point
             
             ap.clean_up()
@@ -191,30 +184,16 @@ inputs=[
                 type="filepath",
                 label="Choose the files to segment and transcribe"),
                 
-    gr.Number(label = 'Time Threshold',
-                info = 'Choose the approximate duration of a silence in the audio'), 
-    gr.Dropdown(
-        [
-            "tiny",
-            "base",
-            "medium",
-            "large"
-        ],
-        label = "Whisper model",
-        info = "Choose the Whisper model with which you want to do the retranscription"
-    ),
-    
-        gr.Textbox(
-        label = 'Output Folder',
-        info = 'Type the path where you want to output the segmented audios)'
-    ),
-        gr.Textbox(
-        label = 'Prefix (Optional)',
-        info = 'Choose a prefix for your extracted audio segments (like the name and chapter of the book)'
-    )
-    
-    
+    gr.Number(label = 'Silence duration',
+                info = 'Minium duration of a silence to be defined as a split point'), 
 
+    
+    gr.Textbox(
+    label = 'Output Folder',
+    info = 'Type the path where you want to output the segmented audios'),
+    
+       
+    
 ],
 outputs=["text"],
 allow_flagging=False
