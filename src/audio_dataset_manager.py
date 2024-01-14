@@ -147,7 +147,7 @@ def define_process_config(filepath, time_threshold, output_folder):
     )
 
     
-def main(files, time_threshold, output_folder):
+def split_main(files, time_threshold, output_folder):
     for file in files:
         process_config = define_process_config(file, time_threshold, output_folder)
 
@@ -175,28 +175,37 @@ def main(files, time_threshold, output_folder):
         #ap.clean_up()
     
 
-
-
-demo = gr.Interface(
-fn=main,
-inputs=[
-    gr.File(file_count="multiple", 
-                type="filepath",
-                label="Choose the files to segment and transcribe"),
+with gr.Blocks() as demo:
+    with gr.Tab('Split audios'):
+        with gr.Row():
+            with gr.Column():
+                fn=split_main
                 
-    gr.Number(label = 'Silence duration',
-                info = 'Minium duration of a silence to be defined as a split point'), 
+                files_input = gr.File(file_count="multiple", 
+                            type="filepath",
+                            label="Choose the files to segment")
+                            
+                silence_float = gr.Number(label = 'Silence duration',
+                            info = 'Minium duration of a silence to be defined as a split point')
 
-    
-    gr.Textbox(
-    label = 'Output Folder',
-    info = 'Type the path where you want to output the segmented audios'),
-    
-       
-    
-],
-outputs=["text"],
-allow_flagging=False
-)
+                
+                output_folder = gr.Textbox(
+                label = 'Output Folder',
+                info = 'Type the path where you want to output the segmented audios')
+
+                split_btn = gr.Button("Split")
+
+            with gr.Column():
+                out = gr.Textbox(label='Console Output')
+
+            
+            split_btn.click(fn=split_main, inputs=[files_input, silence_float, output_folder], outputs=out)
+        
+        
+
+
+        
+      
+        
 
 demo.launch()
