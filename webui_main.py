@@ -1,8 +1,19 @@
 import gradio as gr
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_folder = os.path.join(current_dir, 'src')
+sys.path.append(src_folder)
+
+
+
 from analyze_ui import create_analyze_audio_interface
 from split_ui import create_split_audio_interface
 from transcribe_ui import create_transcribe_audio_interface
 from label_check_ui import create_label_check_interface
+
+
 
 
 
