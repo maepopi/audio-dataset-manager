@@ -173,7 +173,9 @@ def split_main(files, time_threshold, output_folder):
             print('No silences detected')
         
         #ap.clean_up()
-    
+
+def transcribe_main(files_input, whisper_model, output_folder):
+    return('Coucou')
 
 with gr.Blocks() as demo:
     with gr.Tab('Split audios'):
@@ -201,7 +203,31 @@ with gr.Blocks() as demo:
             
             split_btn.click(fn=split_main, inputs=[files_input, silence_float, output_folder], outputs=out)
         
-        
+    with gr.Tab('Transcribe audios'):
+        with gr.Row():
+            with gr.Column():
+                fn=transcribe_main
+
+                files_input = gr.File(file_count="directory", 
+                    type="filepath",
+                    label="Choose the directory of audios to transcribe")
+                
+                whisper_model = gr.Dropdown(
+                    ['tiny', 'base', 'medium', 'large'], label='Whisper model', info="Choose the whisper model that will transcribe your audios"
+                )
+                output_json = gr.Textbox(
+                    label='Output json folder',
+                    info='Choose where the json file will be saved'
+                )
+
+                transcribe_btn = gr.Button("Transcribe")
+
+            with gr.Column():
+                out=gr.Textbox(label='Console Output')
+
+                
+            transcribe_btn.click(fn=transcribe_main, inputs=[files_input, whisper_model, output_json], outputs=out)
+
 
 
         
