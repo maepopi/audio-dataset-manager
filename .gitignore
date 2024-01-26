@@ -154,3 +154,4 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 Testing/json_test.json
+Testing/whisper.json
