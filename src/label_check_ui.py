@@ -1,28 +1,63 @@
 import gradio as gr
-import label_check_utils 
+import os
+import json
+import label_check_utils as utils
 
-def create_label_check_interface():
-    with gr.Blocks() as interface:
-        
-        with gr.Tab('Label and check dataset'):
+
+handler = utils.AudioJsonHandler()
+
+with gr.Blocks() as interface:
+        json_folder = gr.Textbox(label='Path to your retranscription json and clips')
+        submit_button = gr.Button('Load') # This is supposed to load the audios, but also the json file and the ebook if they exist
+
+
+        process_group = gr.Group(visible=True)
+
+        with process_group:
             with gr.Row():
-                with gr.Column():
+                audio_player = gr.Audio()
+                audio_name_box = gr.Textbox(label='Audio File Name', interactive=True)
 
-                    files_input = gr.File(file_count="directory", 
-                        type="filepath",
-                        label="Choose the directory of transcribed audios to check")
-                    
-                    book_reference = gr.File(file_count="single",
-                        type="filepath",
-                        label="Is there a book in PDF or EPUB that you'd like to use for cross reference?"
-                    )
-                    
-                    transcribe_btn = gr.Button("Build check interface")
 
-                with gr.Column():
-                    out=gr.Textbox(label='Console Output')
+            with gr.Row():
+                previous_audio_btn = gr.Button('Previous')
+                delete_audio = gr.Button('Delete from dataset')
+                next_audio_btn = gr.Button('Next')
 
-                    
-                transcribe_btn.click(fn=label_check_utils.label_and_check_main, inputs=[files_input], outputs=out)
+            with gr.Row(equal_height=True):
 
-    return interface
+                json_reference = gr.Textbox(label='JSON reference', scale=20, interactive=True)
+                save_json_button = gr.Button('Save JSON')
+
+            with gr.Row():
+                epub_reference = gr.Textbox(label='EPUB reference')
+
+
+            current_page_label = gr.Label('Current page : 1/X')
+            page_input = gr.Number(label='Enter page', value=1)
+            go_button = gr.Button('Go to page')
+            info_textbox = gr.Markdown(visible=True)
+
+            submit_button.click(fn=handler.load_and_init, 
+                                inputs = [json_folder], 
+                                outputs = [audio_player, audio_name_box, page_input, current_page_label, json_reference] ) 
+            
+            next_audio_btn.click(fn=lambda index, json_folder: handler.handle_pagination(index, json_folder, 1), 
+                                inputs=[page_input, json_folder], 
+                                outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference])
+            
+            previous_audio_btn.click(fn=lambda index, json_folder: handler.handle_pagination(index, json_folder, -1), 
+                                    inputs=[page_input, json_folder], 
+                                    outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference])
+            
+            go_button.click(fn=lambda index, json_folder: handler.change_audio(index - 1, json_folder), 
+                            inputs=[page_input, json_folder], 
+                            outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference])
+            
+
+            save_json_button.click(fn=handler.save_json, inputs=[json_reference, audio_name_box], outputs=info_textbox)
+    
+
+
+
+interface.launch()
