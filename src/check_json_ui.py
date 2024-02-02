@@ -44,15 +44,15 @@ def create_check_json_interface():
                 
                 next_audio_btn.click(fn=lambda index, json_folder: handler.handle_pagination(index, json_folder, 1), 
                                     inputs=[page_input, json_folder], 
-                                    outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference])
+                                    outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox])
                 
                 previous_audio_btn.click(fn=lambda index, json_folder: handler.handle_pagination(index, json_folder, -1), 
                                         inputs=[page_input, json_folder], 
-                                        outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference])
+                                        outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox])
                 
                 go_button.click(fn=lambda index, json_folder: handler.change_audio(index - 1, json_folder), 
                                 inputs=[page_input, json_folder], 
-                                outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference])
+                                outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox])
                 
 
                 save_json_button.click(fn=handler.save_json, inputs=[json_folder, json_reference, audio_name_box], outputs=info_textbox)

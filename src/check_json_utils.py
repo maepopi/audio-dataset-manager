@@ -66,9 +66,9 @@ class AudioJsonHandler():
             audio_text = get_audio_text(audio_name)
             current_page_label_label = f"Current Audio: {index + 1}/{entry_amount}"
 
-            return audio_path, audio_name, index + 1, current_page_label_label, audio_text
+            return audio_path, audio_name, index + 1, current_page_label_label, audio_text, ""
         
-        return None, "", 1, "Audio not available", ""
+        return None, "", 1, "Audio not available", "", ""
             
             
 
