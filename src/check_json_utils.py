@@ -6,6 +6,10 @@ class AudioJsonHandler():
     
     def __init__(self):
         self.json_data = None
+    
+    def get_json(self, path):
+        return next(
+        (file for file in os.listdir(path) if file.endswith('.json')), None)
 
     def load_and_init(self, json_folder):
         json_file = self.get_json(json_folder)
@@ -15,8 +19,18 @@ class AudioJsonHandler():
 
         return self.change_audio(0, json_folder)
 
-    def save_json(self, text, audio_name):
-        self.json_data[audio_name]['text'] = text
+    def save_json(self, json_folder, text, audio_name):
+        json_file = self.get_json(json_folder)
+        json_file_path = os.path.join(json_folder, json_file)
+
+
+        with open(json_file_path, 'r+') as file:
+               self.json_data = json.load(file)
+               self.json_data[audio_name]['text'] = text
+               file.seek(0)
+               json.dump(self.json_data, file, indent=4)
+               file.truncate()
+
         return '>> *The JSON was saved.*'
 
     def handle_pagination(self, page, json_folder, delta):
@@ -29,9 +43,7 @@ class AudioJsonHandler():
             # To achieve this, subtract delta to revert to original page index
             return self.change_audio(page - 1, json_folder)  # page - 1 adjusts back to zero-based index
 
-    def get_json(self, path):
-        return next(
-        (file for file in os.listdir(path) if file.endswith('.json')), None)
+ 
             
     def change_audio(self, index, json_folder):
 

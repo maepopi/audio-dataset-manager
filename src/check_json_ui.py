@@ -1,6 +1,4 @@
 import gradio as gr
-import os
-import json
 import check_json_utils as utils
 
 
@@ -57,7 +55,7 @@ def create_check_json_interface():
                                 outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference])
                 
 
-                save_json_button.click(fn=handler.save_json, inputs=[json_reference, audio_name_box], outputs=info_textbox)
+                save_json_button.click(fn=handler.save_json, inputs=[json_folder, json_reference, audio_name_box], outputs=info_textbox)
         
 
 
