@@ -21,7 +21,13 @@ class AudioJsonHandler():
 
     def handle_pagination(self, page, json_folder, delta):
         new_index = page -1 + delta # We adjust for zero-based indexing, and the delta determines which way we move
-        return self.change_audio(new_index, json_folder)
+        # Check if the new_index is within the valid range
+        if 0 <= new_index < len(self.json_data):
+            return self.change_audio(new_index, json_folder)
+        else:
+            # If the new_index is out of bounds, return current state without change
+            # To achieve this, subtract delta to revert to original page index
+            return self.change_audio(page - 1, json_folder)  # page - 1 adjusts back to zero-based index
 
     def get_json(self, path):
         return next(
