@@ -12,7 +12,8 @@ def create_analyze_audio_interface():
 
                     files_input = gr.Audio(
                         type="filepath",
-                        label="Choose an audio to analyze")
+                        label="Choose an audio to analyze",
+                        waveform_options={'show_controls':True})
                     
                     transcribe_btn = gr.Button("Analyze")
 

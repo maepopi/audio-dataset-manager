@@ -13,8 +13,8 @@ def create_check_json_interface():
         total_segment_components = 10
 
         with gr.Row():
-            audio_player = gr.Audio(interactive=True, editable=True)
-            audio_name_box = gr.Textbox(label='Audio File Name', interactive=True)
+            audio_player = gr.Audio(interactive=True, editable=True, waveform_options={'show_controls':True})
+            audio_name_box = gr.Textbox(label='Audio File Name', interactive=False)
 
 
         with gr.Row():
