@@ -19,6 +19,25 @@ class AudioJsonHandler():
 
         return self.change_audio(0, json_folder, total_segment_components)
 
+
+    def delete_entry(self, json_folder, index, audio_name, total_segment_components):
+        # Part of this function gets repeated with save json, needs refactor
+        json_file = self.get_json(json_folder)
+        json_file_path = os.path.join(json_folder, json_file)
+
+        with open(json_file_path, 'r+') as file:
+            self.json_data = json.load(file)
+
+            if audio_name in self.json_data:
+                self.json_data.pop(audio_name)
+            
+            file.seek(0)
+            json.dump(self.json_data, file, indent=4)
+            file.truncate()
+        
+        return self.change_audio(index - 1, json_folder, total_segment_components)
+
+
     def save_json(self, json_folder, text, audio_name, *all_segment_boxes):
         def process_json(file, text, audio_name, cleaned_textboxes):
             self.json_data = json.load(file)
