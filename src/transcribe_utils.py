@@ -4,19 +4,23 @@ import json
 import os
 
 def transcribe_audios(input, model, export_folder):
+    extensions = ['.mp3', '.wav']
     model = whisper.load_model(model)
     export_path = os.path.join(export_folder, 'whisper.json')
+
+    os.makedirs(export_folder, exist_ok=True)
     
     transcriptions = {}
 
     for audio in os.listdir(input):
-        audio_path = os.path.join(input, audio)
-        audio_name = os.path.splitext(audio)[0]
-        
-        result = model.transcribe(audio_path)
+        if any(audio.endswith(ext) for ext in extensions):
+            audio_path = os.path.join(input, audio)
+            audio_name = os.path.splitext(audio)[0]
+            
+            result = model.transcribe(audio_path)
 
-        # Add to the transcriptions dictionary
-        transcriptions[audio] = result
+            # Add to the transcriptions dictionary
+            transcriptions[audio] = result
 
     # Write to a JSON file
     with open(export_path, 'w') as json_file:
@@ -27,12 +31,8 @@ def transcribe_audios(input, model, export_folder):
 
 def internal_transcriber(input, model, export_path):
     transcribe_audios(input, model, export_path)
-    markdown_text = f"""
     
-        >> Your audios have been retranscribed in **{export_path}**
-
-    """
-    return gr.Markdown(value=markdown_text, visible=True)
+    return 'Your audios have been successfully transcribed.'
 
 def choose_transcriber(transcriber_choice):
     if transcriber_choice == 'This tool':
