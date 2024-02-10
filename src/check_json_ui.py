@@ -14,7 +14,10 @@ def create_check_json_interface():
 
         with gr.Row():
             audio_player = gr.Audio(interactive=True, editable=True, waveform_options={'show_controls':True})
-            audio_name_box = gr.Textbox(label='Audio File Name', interactive=False)
+
+            with gr.Column():
+                audio_name_box = gr.Textbox(label='Audio File Name', interactive=False)
+                info_textbox = gr.TextArea(label='Console Output', visible=True)
 
 
         with gr.Row():
@@ -40,15 +43,12 @@ def create_check_json_interface():
 
                 all_segment_boxes.extend((seg_textbox, seg_start, seg_end))
 
-        with gr.Row():
-            epub_reference = gr.Textbox(label='EPUB reference')
-
 
         delete_audio = gr.Button('Delete from dataset')
         current_page_label = gr.Label('Current page : 1/X')
         page_input = gr.Number(label='Enter page', value=1)
         go_button = gr.Button('Go to page')
-        info_textbox = gr.Markdown(visible=True)
+        
 
         submit_button.click(fn=lambda json_folder: handler.load_and_init(json_folder, total_segment_components), 
                             inputs = [json_folder], 
