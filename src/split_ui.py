@@ -13,7 +13,7 @@ def create_split_audio_interface():
                                     label="Choose the files to segment")
                                     
                         silence_float = gr.Number(label = 'Silence duration',
-                                    info = 'Minium duration of a silence to be defined as a split point')
+                                    info = 'Minium duration of a silence to be defined as a split point (in seconds)')
 
                         
                         output_folder = gr.Textbox(

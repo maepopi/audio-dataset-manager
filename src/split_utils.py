@@ -28,7 +28,7 @@ class AudioProcessor():
     def detect_silences(self, decibel="-23dB", audio_path=None):
         '''Function to detect silences in an audio'''
         audio_path = audio_path or self.config.filepath
-
+        
         # Executing ffmpeg to detect silences
         command = ["ffmpeg","-i",audio_path,"-af",f"silencedetect=n={decibel}:d={str(self.config.time_threshold)}","-f","null","-"]
         out = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -57,9 +57,16 @@ class AudioProcessor():
 
         return list(zip(silence_starts, silence_ends))
 
-    def extract_midpoints(self, list):
+    def extract_midpoints(self, silence_periods):
         ''' Function to extract the midpoints where the audio must be sliced '''
-        return [(start + end) / 2 for start, end in list]
+        midpoints = []
+        for period in silence_periods:
+            if isinstance(period, (list, tuple)) and len(period) == 2:
+                start, end = period
+                midpoints.append((start + end) / 2)
+            else:
+                print(f"Skipping invalid silence period format: {period}")
+        return midpoints
 
     def process_segment(self, start_point, end_point):
         '''Extracts and exports a segment of the audio'''
@@ -96,33 +103,29 @@ class AudioProcessor():
         segment_path, segment_length = self.process_segment(start_point, end_point)
      
         if segment_length > 11000:
-            counter = self.handle_long_segment(segment_path, counter)
+            return self.handle_long_segment(segment_path, counter)
         
         else:
+            self.export_segment(self.audio[start_point * 1000:end_point * 1000], counter)
+            counter += 1
+            return counter
 
-            segment_path = self.export_segment(self.audio[start_point*1000:end_point*1000], counter)
-            counter +=1
-        
-        return counter
+ 
     
     def handle_long_segment(self, segment_path, counter):
         new_silence_periods = self.detect_silences("-23dB", segment_path)
         # Ensure new_silence_periods is a list of tuples before proceeding
-        if isinstance(new_silence_periods, str) or not all(isinstance(item, tuple) and len(item) == 2 for item in new_silence_periods):
-            print('Received message:', new_silence_periods)
-            return counter  # Skip processing if data is invalid
-        
-        # Check if there are no valid silence periods to process
-        if not new_silence_periods:
-            print('No silence detected')
-            return counter
-
+        if not new_silence_periods or isinstance(new_silence_periods, str):
+            print('No new silences detected or error:', new_silence_periods)
+            return counter  # Always return counter, even if no action is taken
 
         new_midpoints = self.extract_midpoints(new_silence_periods)
         for i in range(len(new_midpoints) - 1):
             start_midpoint = new_midpoints[i]
             end_midpoint = new_midpoints[i + 1]
             counter = self.split_audio(start_midpoint, end_midpoint, counter)
+        
+        return counter
     
     def clean_up(self):
         temp_segment_folder = os.path.join(self.config.output_folder, 'temp')
@@ -157,28 +160,35 @@ def define_process_config(filepath, time_threshold, output_folder):
 
     
 def split_main(files, time_threshold, output_folder):
+    allowed_extensions = ['.mp3', '.wav']
+    no_silence_message = f'No silences of {time_threshold} seconds where detected. '
+
+
     for file in files:
+        _, file_extension = os.path.splitext(file)
+        if file_extension not in allowed_extensions:
+            return f"Unsupported audio format: {file_extension}. Please use WAV or MP3."
+
         process_config = define_process_config(file, time_threshold, output_folder)
 
         if not os.path.exists(process_config.output_folder):
             os.makedirs(process_config.output_folder)
         
-
         ap = AudioProcessor(process_config)
+        silence_list = ap.detect_silences()
+
+        if not silence_list or silence_list == 'No silence was detected':
+            return no_silence_message  # Stop and return if no silences detected
+
+
+        midpoints = ap.extract_midpoints(silence_list)
         counter = 1
-
-        if silence_list := ap.detect_silences():
-            midpoints = ap.extract_midpoints(silence_list)
-            start_point = 0
+        start_point = 0 
 
 
-            for end_point in midpoints:
-                counter = ap.split_audio(start_point, end_point, counter)
-                start_point = end_point
-            
-            ap.clean_up()
-
-        else:
-            print('No silences detected')
+        for end_point in midpoints:
+            counter = ap.split_audio(start_point, end_point, counter)
+            start_point = end_point
         
-        #ap.clean_up()
+        ap.clean_up()
+        return('Your audios were successfully splitted.')
