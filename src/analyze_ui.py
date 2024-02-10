@@ -6,7 +6,7 @@ from analyze_utils import analyze_main
 def create_analyze_audio_interface():
     with gr.Blocks() as interface:
         
-        with gr.Tab('Analyze audios'):
+        # with gr.Tab('Analyze audios'):
             with gr.Row():
                 with gr.Column():
 

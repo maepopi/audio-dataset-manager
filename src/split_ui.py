@@ -4,7 +4,7 @@ import split_utils
 
 def create_split_audio_interface():
     with gr.Blocks() as interface:
-        with gr.Tab('Split audios'):
+        # with gr.Tab('Split audios'):
                 with gr.Row():
                     with gr.Column():
                         
