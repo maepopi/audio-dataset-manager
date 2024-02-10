@@ -106,12 +106,21 @@ class AudioProcessor():
     
     def handle_long_segment(self, segment_path, counter):
         """Handles long segments by finding new silence periods and processing recursively."""
-        if new_silence_periods := self.detect_silences("-23dB", segment_path):
-            new_midpoints = self.extract_midpoints(new_silence_periods)
-            for midpoint in new_midpoints:
-                counter = self.split_audio(midpoint, counter)
-        else:
+        new_silence_periods = self.detect_silences("-23dB", segment_path)
+        # Ensure new_silence_periods is a list of tuples before proceeding
+        if isinstance(new_silence_periods, str) or not all(isinstance(item, tuple) and len(item) == 2 for item in new_silence_periods):
+            print('Received message:', new_silence_periods)
+            return counter  # Skip processing if data is invalid
+        
+        # Check if there are no valid silence periods to process
+        if not new_silence_periods:
             print('No silence detected')
+            return counter
+
+
+        new_midpoints = self.extract_midpoints(new_silence_periods)
+        for midpoint in new_midpoints:
+                counter = self.split_audio(midpoint, counter)
     
     def clean_up(self):
         temp_segment_folder = os.path.join(self.config.output_folder, 'temp')
