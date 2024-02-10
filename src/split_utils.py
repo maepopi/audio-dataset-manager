@@ -25,9 +25,9 @@ class AudioProcessor():
         self.config = config
         self.audio = AudioSegment.from_file(config.filepath)
  
-    def detect_silences(self, decibel="-23dB"):
+    def detect_silences(self, decibel="-23dB", audio_path = None):
         '''Function to detect silences in an audio'''
-
+        audio_path = audio_path or self.config.filepath
         # Executing ffmpeg to detect silences
         command = ["ffmpeg","-i",self.config.filepath,"-af",f"silencedetect=n={decibel}:d={str(self.config.time_threshold)}","-f","null","-"]
         out = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -106,7 +106,7 @@ class AudioProcessor():
     
     def handle_long_segment(self, segment_path, counter):
         """Handles long segments by finding new silence periods and processing recursively."""
-        if new_silence_periods := self.detect_silences(segment_path, "-23dB"):
+        if new_silence_periods := self.detect_silences("-23dB", segment_path):
             new_midpoints = self.extract_midpoints(new_silence_periods)
             for midpoint in new_midpoints:
                 counter = self.split_audio(midpoint, counter)
