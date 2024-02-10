@@ -50,19 +50,19 @@ def create_check_json_interface():
         go_button = gr.Button('Go to page')
         
 
-        submit_button.click(fn=lambda json_folder: handler.load_and_init(json_folder, total_segment_components), 
-                            inputs = [json_folder], 
+        submit_button.click(fn=lambda json_folder, *all_segment_boxes: handler.load_and_init(json_folder, *all_segment_boxes, total_segment_components=total_segment_components), 
+                            inputs = [json_folder, *all_segment_boxes], 
                             outputs = [audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes] ) 
 
-        next_audio_btn.click(fn=lambda index, json_folder: handler.handle_pagination(index, json_folder, 1, total_segment_components), 
+        next_audio_btn.click(fn=lambda index, json_folder: handler.handle_pagination(index, json_folder, 1, total_segment_components=total_segment_components), 
                             inputs=[page_input, json_folder], 
                             outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes])
 
-        previous_audio_btn.click(fn=lambda index, json_folder: handler.handle_pagination(index, json_folder, -1, total_segment_components), 
+        previous_audio_btn.click(fn=lambda index, json_folder: handler.handle_pagination(index, json_folder, -1, total_segment_components=total_segment_components), 
                                 inputs=[page_input, json_folder], 
                                 outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes])
 
-        go_button.click(fn=lambda index, json_folder: handler.change_audio(index - 1, json_folder, total_segment_components), 
+        go_button.click(fn=lambda index, json_folder: handler.change_audio(index - 1, json_folder, total_segment_components=total_segment_components), 
                         inputs=[page_input, json_folder], 
                         outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes])
 
@@ -70,9 +70,16 @@ def create_check_json_interface():
         save_json_button.click(fn=handler.save_json, inputs=[json_folder, json_reference, audio_name_box, *all_segment_boxes], 
                                outputs=info_textbox)
         
-        delete_audio.click(fn=lambda json_folder, page_input, audio_name_box: handler.delete_entry(json_folder, page_input, audio_name_box, total_segment_components), 
+        delete_audio.click(fn=lambda json_folder, page_input, audio_name_box: 
+                           handler.delete_entry(json_folder,
+                                                page_input, 
+                                                audio_name_box, 
+                                                total_segment_components=total_segment_components), 
+
                            inputs=[json_folder, page_input, audio_name_box],
-                           outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes])
+
+                           outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes]
+                           )
 
 
 

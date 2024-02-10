@@ -11,13 +11,13 @@ class AudioJsonHandler():
         return next(
         (file for file in os.listdir(path) if file.endswith('.json')), None)
 
-    def load_and_init(self, json_folder, total_segment_components):
+    def load_and_init(self, json_folder, *all_segment_boxes, total_segment_components):
         json_file = self.get_json(json_folder)
         json_path = os.path.join(json_folder, json_file)
         with open(json_path, 'r') as file:
             self.json_data = json.load(file)
 
-        return self.change_audio(0, json_folder, total_segment_components)
+        return self.change_audio(0, json_folder, *all_segment_boxes, total_segment_components=total_segment_components)
 
 
     def delete_entry(self, json_folder, index, audio_name, total_segment_components):
@@ -28,6 +28,10 @@ class AudioJsonHandler():
         with open(json_file_path, 'r+') as file:
             self.json_data = json.load(file)
 
+            if len(self.json_data) <= 1:
+                log_message = 'Cannot delete the last audio of the dataset'
+                return self.change_audio(index, json_folder, total_segment_components=total_segment_components, info_message=log_message)
+
             if audio_name in self.json_data:
                 self.json_data.pop(audio_name)
             
@@ -35,9 +39,9 @@ class AudioJsonHandler():
             json.dump(self.json_data, file, indent=4)
             file.truncate()
         
-        success_message = f'{audio_name} was successfully deleted from the dataset.'
+        log_message = f'{audio_name} was successfully deleted from the dataset.'
         
-        return self.change_audio(index - 1, json_folder, total_segment_components, success_message)
+        return self.change_audio(index - 1, json_folder, total_segment_components=total_segment_components, info_message=log_message)
 
 
     def save_json(self, json_folder, text, audio_name, *all_segment_boxes):
@@ -69,15 +73,15 @@ class AudioJsonHandler():
         new_index = page -1 + delta # We adjust for zero-based indexing, and the delta determines which way we move
         # Check if the new_index is within the valid range
         if 0 <= new_index < len(self.json_data):
-            return self.change_audio(new_index, json_folder, total_segment_components)
+            return self.change_audio(new_index, json_folder, total_segment_components=total_segment_components)
         else:
             # If the new_index is out of bounds, return current state without change
             # To achieve this, subtract delta to revert to original page index
-            return self.change_audio(page - 1, json_folder, total_segment_components)  # page - 1 adjusts back to zero-based index
+            return self.change_audio(page - 1, json_folder, total_segment_components=total_segment_components)  # page - 1 adjusts back to zero-based index
 
  
             
-    def change_audio(self, index, json_folder, total_segment_components, info_message=""):
+    def change_audio(self, index, json_folder, *all_segment_boxes, total_segment_components=None, info_message=""):
 
 
         def get_audio_file():
@@ -134,6 +138,7 @@ class AudioJsonHandler():
 
             return audio_path, audio_name, index + 1, curent_page_label, audio_text, info_message, *new_segment_group
         
+        new_segment_group = all_segment_boxes
         return None, "", 1, "Audio not available", "", "Something went wrong. Check whether your JSON file is empty.", *new_segment_group
             
             
