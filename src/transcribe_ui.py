@@ -15,14 +15,19 @@ def create_transcribe_audio_interface():
 
 
         with internal_transcriber_group:
-            input_folder = gr.Textbox(label='Path to the folder you want to transcribe')
-            model_choice = gr.Dropdown(label='Which Whisper model do you want to use?', 
-                                                choices=["tiny", "tiny.en", "base", "base.en", "small", "small.en", 
-                                                        "medium", "medium.en",
-                                                        "large", "large-v1", "large-v2", ])
-            export_path = gr.Textbox(label='Path to the folder you want to export your transcribed json')
-            internal_transcriber_textbox = gr.Markdown(visible=False)
-            submit_button = gr.Button('Transcribe')
+             with gr.Row(equal_height=True):
+                with gr.Column():
+                    input_folder = gr.Textbox(label='Path to the folder you want to transcribe')
+                    model_choice = gr.Dropdown(label='Which Whisper model do you want to use?', 
+                                                        choices=["tiny", "tiny.en", "base", "base.en", "small", "small.en", 
+                                                                "medium", "medium.en",
+                                                                "large", "large-v1", "large-v2", ])
+                    export_path = gr.Textbox(label='Path to the folder you want to export your transcribed json')
+                    submit_button = gr.Button('Transcribe')
+                
+                with gr.Column():
+                    out = gr.TextArea(label='Output Console')
+
         
         with mrq_tool_group:
             instructions_text = """
@@ -50,6 +55,6 @@ def create_transcribe_audio_interface():
 
 
         choice_radio.change(fn=utils.choose_transcriber, inputs=[choice_radio], outputs=[internal_transcriber_group, mrq_tool_group])
-        submit_button.click(fn=utils.internal_transcriber, inputs=[input_folder, model_choice, export_path], outputs=[internal_transcriber_textbox])
+        submit_button.click(fn=utils.internal_transcriber, inputs=[input_folder, model_choice, export_path], outputs=out)
 
     return interface
