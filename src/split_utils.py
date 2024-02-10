@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import os
 import whisper
 import shutil
+import unicodedata
 
 @dataclass
 class AudioProcess_Config():
@@ -13,8 +14,6 @@ class AudioProcess_Config():
     input_format :str
     export_format: str
     output_folder: str
-    usable_folder: str
-    not_usable_folder: str
     time_threshold: float
     prefix : str
     
@@ -27,10 +26,14 @@ class AudioProcessor():
  
     def detect_silences(self, decibel="-23dB", audio_path=None):
         '''Function to detect silences in an audio'''
+
+        # Use provided path or default to config.
         audio_path = audio_path or self.config.filepath
         
-        # Executing ffmpeg to detect silences
+         # Construct the ffmpeg command for silence detection.
         command = ["ffmpeg","-i",audio_path,"-af",f"silencedetect=n={decibel}:d={str(self.config.time_threshold)}","-f","null","-"]
+
+         # Execute the command and capture stdout and stderr.
         out = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = out.communicate()
 
@@ -40,13 +43,14 @@ class AudioProcessor():
         silence_starts = []
         silence_ends = []
 
+        # If no silence detected, return an indication message. We need this here too because the function can be called recursively.
         if len(silence_info) <= 1:
             return('No silence was detected')
 
-            # Process each detected silence fragment
-        for index, segment in enumerate(silence_info[1:], start=1):
+        # Extract silence start and end times from the ffmpeg output.
+        for index, segment in enumerate(silence_info[1:], start=1): # [1:] because we need only a certain portion of the ffmpeg output.
             segment_details = segment.split(']')[1]
-            if time_values := re.findall(r"[-+]?\d*\.\d+|\d+", segment_details):
+            if time_values := re.findall(r"[-+]?\d*\.\d+|\d+", segment_details): # Extracting the actual values of start and end times, and then converting them to floats
                 time = float(time_values[0])
 
                 # Checking whether the time should be either the start or end time according to where we are in the iteration
@@ -55,45 +59,83 @@ class AudioProcessor():
                 else:
                     silence_starts.append(time)
 
+        # Return a list of tuples, each representing a silence period (start, end).
         return list(zip(silence_starts, silence_ends))
 
     def extract_midpoints(self, silence_periods):
-        ''' Function to extract the midpoints where the audio must be sliced '''
+        """
+        Calculates midpoints of silence periods for determining where to split the audio.
+        """
+
         midpoints = []
+
         for period in silence_periods:
+            # Ensure period is a tuple of start and end times.
             if isinstance(period, (list, tuple)) and len(period) == 2:
                 start, end = period
+                # Calculate and add the midpoint.
                 midpoints.append((start + end) / 2)
             else:
                 print(f"Skipping invalid silence period format: {period}")
         return midpoints
 
     def process_segment(self, start_point, end_point):
-        '''Extracts and exports a segment of the audio'''
+        """
+        Extracts a segment from the audio file between specified start and end points.
+        """
+        # Slice the audio segment from the main audio file.
         segment = self.audio[start_point * 1000 : end_point * 1000]
+
+        # Create a temporary folder for storing the audio segment.
         temp_segment_folder = os.path.join(self.config.output_folder, 'temp')
                                            
         if not os.path.exists(temp_segment_folder):
             os.makedirs(temp_segment_folder)
 
+         # Define the path for the temporary audio segment.
         temp_segment_name = f'temp_segment.{self.config.export_format}'
         temp_segment_path = os.path.join(temp_segment_folder, temp_segment_name)
+
+        # Export the audio segment to the specified path.
         segment.export(temp_segment_path, format=self.config.export_format)
 
         return temp_segment_path, len(segment)
     
     def transcribe_segment(self, segment_path):
-        '''Transcribes the audio segment'''
-        model = whisper.load_model(self.config.whisper_model)
+        """
+        Transcribes the audio segment using Whisper and returns the transcription text.
+        """
+        model = whisper.load_model('tiny')
         transcription = model.transcribe(segment_path)
+
+        # Clean up the transcription text for use in filenames or display.
         transcription_text = transcription['text']
         return re.sub(r'[ ?!,;."]', "_", transcription_text[:150])
-    
+ 
         
-    def export_segment(self, segment, counter):
-        """Exports the processed segment with a formatted name."""
+    def export_segment(self, segment, counter, transcription):
+        """
+        Exports the processed audio segment with a formatted name that includes the counter and the transcription.
+        """
+        def normalize_text(text):
+            # Normalize characters to NFD form which separates base characters from accents
+            normalized = unicodedata.normalize('NFD', text)
+            # Remove non-spacing marks (accents) by filtering out characters with the Mn property (Mark, Nonspacing)
+            without_accents = ''.join(c for c in normalized if unicodedata.category(c) != 'Mn')
+            # Replace spaces with underscores and remove any non-alphanumeric characters except underscores
+            clean_text = re.sub(r'[^a-zA-Z0-9_]', '_', without_accents)
+            return clean_text
+
+
         padded_index = str(counter).zfill(4)
-        segment_path = os.path.join(self.config.output_folder, f"{self.config.prefix}_{padded_index}.{self.config.export_format}")
+
+        # Create a formatted segment name including the counter, padded index, and normalized transcription text.
+        temp_segment_name = f"{self.config.prefix}_{padded_index}_{transcription}"
+
+        # Normalize the name
+        segment_name = normalize_text(temp_segment_name)
+
+        segment_path = os.path.join(self.config.output_folder, f"{segment_name}.{self.config.export_format}")
         segment.export(segment_path, format=self.config.export_format)
         print(f"Saved {segment_path}")
         return segment_path
@@ -106,7 +148,8 @@ class AudioProcessor():
             return self.handle_long_segment(segment_path, counter)
         
         else:
-            self.export_segment(self.audio[start_point * 1000:end_point * 1000], counter)
+            transcription = self.transcribe_segment(segment_path)
+            self.export_segment(self.audio[start_point * 1000:end_point * 1000], counter, transcription)
             counter += 1
             return counter
 
@@ -151,8 +194,6 @@ def define_process_config(filepath, time_threshold, output_folder):
         input_format=input_format,
         export_format=input_format,
         output_folder=output_folder,
-        usable_folder=usable_folder,
-        not_usable_folder=not_usable_folder,
         time_threshold=time_threshold,
         prefix=prefix
         
