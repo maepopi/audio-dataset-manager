@@ -83,7 +83,7 @@ class AudioProcessor():
         """
         Extracts a segment from the audio file between specified start and end points.
         """
-        # Slice the audio segment from the main audio file.
+        # Slice the audio segment from the main audio file, and converting it to miliseconds for Pydub.
         segment = self.audio[start_point * 1000 : end_point * 1000]
 
         # Create a temporary folder for storing the audio segment.
@@ -122,10 +122,11 @@ class AudioProcessor():
             normalized = unicodedata.normalize('NFD', text)
             # Remove non-spacing marks (accents) by filtering out characters with the Mn property (Mark, Nonspacing)
             without_accents = ''.join(c for c in normalized if unicodedata.category(c) != 'Mn')
-            # Replace spaces with underscores and remove any non-alphanumeric characters except underscores
-            clean_text = re.sub(r'[^a-zA-Z0-9_]', '_', without_accents)
+            # Replace spaces and any non-alphanumeric characters with underscores
+            with_underscores = re.sub(r'[^a-zA-Z0-9_]', '_', without_accents)
+            # Replace any sequence of multiple underscores with a single underscore
+            clean_text = re.sub(r'__+', '_', with_underscores)
             return clean_text
-
 
         padded_index = str(counter).zfill(4)
 
