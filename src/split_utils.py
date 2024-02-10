@@ -16,6 +16,8 @@ class AudioProcess_Config():
     output_folder: str
     time_threshold: float
     prefix : str
+    transcription_choice: bool
+    transcription_model : str
     
 class AudioProcessor():
     ''' Class to process the audios'''
@@ -101,11 +103,11 @@ class AudioProcessor():
 
         return temp_segment_path, len(segment)
     
-    def transcribe_segment(self, segment_path):
+    def transcribe_segment(self, segment_path, model):
         """
         Transcribes the audio segment using Whisper and returns the transcription text.
         """
-        model = whisper.load_model('tiny')
+        model = whisper.load_model(model)
         transcription = model.transcribe(segment_path)
 
         # Clean up the transcription text for use in filenames or display.
@@ -113,7 +115,7 @@ class AudioProcessor():
         return re.sub(r'[ ?!,;."]', "_", transcription_text[:150])
  
         
-    def export_segment(self, segment, counter, transcription):
+    def export_segment(self, segment, counter, transcription=None):
         """
         Exports the processed audio segment with a formatted name that includes the counter and the transcription.
         """
@@ -131,7 +133,10 @@ class AudioProcessor():
         padded_index = str(counter).zfill(4)
 
         # Create a formatted segment name including the counter, padded index, and normalized transcription text.
-        temp_segment_name = f"{self.config.prefix}_{padded_index}_{transcription}"
+        if transcription is not None:
+            temp_segment_name = f"{self.config.prefix}_{padded_index}_{transcription}"
+        else:
+            temp_segment_name = f"{self.config.prefix}_{padded_index}"
 
         # Normalize the name
         segment_name = normalize_text(temp_segment_name)
@@ -144,13 +149,15 @@ class AudioProcessor():
 
     def split_audio(self, start_point, end_point, counter):
         segment_path, segment_length = self.process_segment(start_point, end_point)
+        transcription=None
      
         if segment_length > 11000:
             return self.handle_long_segment(segment_path, counter)
         
         else:
-            transcription = self.transcribe_segment(segment_path)
-            self.export_segment(self.audio[start_point * 1000:end_point * 1000], counter, transcription)
+            if self.config.transcription_choice:
+                transcription = self.transcribe_segment(segment_path, self.config.transcription_model)
+            self.export_segment(self.audio[start_point * 1000:end_point * 1000], counter, transcription=transcription)
             counter += 1
             return counter
 
@@ -183,9 +190,7 @@ class AudioProcessor():
 
 
 
-def define_process_config(filepath, time_threshold, output_folder):
-    usable_folder = os.path.join(output_folder, 'Usable_Audios')
-    not_usable_folder = os.path.join(output_folder, 'Not_Usable_Audios')
+def define_process_config(filepath, time_threshold, output_folder, transcription_choice, transcription_model):
     input_format = filepath.split('.')[-1].lower()
     prefix = os.path.basename(filepath).rsplit('.', 1)[0]
     
@@ -196,12 +201,14 @@ def define_process_config(filepath, time_threshold, output_folder):
         export_format=input_format,
         output_folder=output_folder,
         time_threshold=time_threshold,
-        prefix=prefix
+        prefix=prefix,
+        transcription_choice=transcription_choice,
+        transcription_model=transcription_model
         
     )
 
     
-def split_main(files, time_threshold, output_folder):
+def split_main(files, time_threshold, output_folder, transcription_choice, transcription_model):
     allowed_extensions = ['.mp3', '.wav']
     no_silence_message = f'No silences of {time_threshold} seconds where detected. '
 
@@ -211,7 +218,7 @@ def split_main(files, time_threshold, output_folder):
         if file_extension not in allowed_extensions:
             return f"Unsupported audio format: {file_extension}. Please use WAV or MP3."
 
-        process_config = define_process_config(file, time_threshold, output_folder)
+        process_config = define_process_config(file, time_threshold, output_folder, transcription_choice, transcription_model)
 
         if not os.path.exists(process_config.output_folder):
             os.makedirs(process_config.output_folder)
