@@ -18,7 +18,7 @@ def create_analyze_audio_interface():
                     transcribe_btn = gr.Button("Analyze")
 
                 with gr.Column():
-                    out=gr.Textbox(label='Console Output')
+                    out=gr.TextArea(label='Console Output')
 
                     
                 transcribe_btn.click(fn=analyze_main, inputs=[files_input], outputs=out)

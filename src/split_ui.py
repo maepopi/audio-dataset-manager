@@ -23,7 +23,7 @@ def create_split_audio_interface():
                         split_btn = gr.Button("Split")
 
                     with gr.Column():
-                        out = gr.Textbox(label='Console Output')
+                        out = gr.TextArea(label='Console Output')
 
                     
                     split_btn.click(fn=split_utils.split_main, inputs=[files_input, silence_float, output_folder], outputs=out)
