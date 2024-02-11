@@ -93,7 +93,22 @@ class AudioProcessor():
 
     def export_audio_segment(self, segment, suffix, export_format, counter):
         padded_index = str(counter).zfill(4)
-        file_name = f"{self.config.prefix}_{padded_index}{suffix}.{export_format}"
+
+        # Sanitize prefix and suffix: replace spaces with '_', remove special characters, and avoid consecutive underscores
+        sanitize = lambda s: re.sub(r'_{2,}', '_', re.sub(r'[^a-zA-Z0-9_]', '_', s.replace(' ', '_')))
+        sanitized_prefix = sanitize(self.config.prefix)
+
+        if suffix:
+            sanitized_suffix = sanitize(suffix)
+        
+
+         # Construct the file name
+        file_name = f"{sanitized_prefix}_{padded_index}_{sanitized_suffix}.{export_format}".strip('_')
+
+        # Further ensure no consecutive underscores and no leading/trailing underscore
+        file_name = re.sub(r'_+', '_', file_name)
+
+
         segment_path = os.path.join(self.config.output_folder, file_name)
         segment.export(segment_path, format=export_format)
         print(f"Saved {segment_path}")
