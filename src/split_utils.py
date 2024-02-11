@@ -49,31 +49,40 @@ class AudioProcessor():
             return None
         
         # Initializing two lists, one for the start timestamps, the other for the end timestamps
-        start, end = [], []
+        starts, ends = [], []
 
         # Iterating over each part of the split output, starting from the second element index (1) because we're not interested in the first part.
         for i in range(1, len(split_output)):
 
-            # For each part, further split the expression so that we isolate the part containing the timestamps
+            # For each part, further split the expression so that we isolate the part containing the timestamp
             timestamp_info = split_output[i].split(']')[1]
 
-            # We extract the actual timestamps under the form of strings, using a Regex excpression
-            extracted_timestamps = re.findall(r"[-+]?\d*\.\d+|\d+", timestamp_info)
+            # We extract the actual timestamp under the form of a string, using a Regex excpression
+            extracted_timestamp = re.findall(r"[-+]?\d*\.\d+|\d+", timestamp_info)
 
-            if not extracted_timestamps:# Not sure what this does
+            if not extracted_timestamp:# If no extracted timestamps, go to the next line, back at the beginning of the loop
                 continue
 
-            # Converting the timestamp into a float
-            timestamp_info = float(extracted_timestamps[0])
+            # Converting the timestamp into a float (the first portion corresponds to the number, that's what we want)
+            float_time = float(extracted_timestamp[0])
 
-            # Alternating between assigning the timestamp to a start or an end based on where we are in the iteration. If i is an even number, 
+            # We decide whether the timestamp is a start or an end depending on the flag Ffmpeg gives us
+            if 'silence_start' in timestamp_info:
+                starts.append(float_time)
+
+            if 'silence_end' in timestamp_info:
+                ends.append(float_time)
+
+
+            # Old method : Alternating between assigning the timestamp to a start or an end based on where we are in the iteration. If i is an even number, 
             # it means the timestamp we currently have is an end time.
             
-            if i % 2 == 0:
-                end.append(timestamp_info)
-            else:
-                start.append(timestamp_info)
-        return list(zip(start, end))
+            # if i % 2 == 0:
+            #     end.append(timestamp_info)
+            # else:
+            #     start.append(timestamp_info)
+                
+        return list(zip(starts, ends))
     
     def transcribe_audio(self, audio_path):
         model = whisper.load_model(self.config.transcription_model)
@@ -103,7 +112,7 @@ class AudioProcessor():
         temp_segment_path = f"temp_segment.{export_format}"
         segment.export(temp_segment_path, format=export_format)
 
-        segment_processed = False # Flag to track if the segment has been processed (split or transcribed)
+        #segment_processed = False # Flag to track if the segment has been processed (split or transcribed)
 
         # Split further or transcribe based on segment duration : the threshold is 11 seconds based on MRQ ai-voice-cloning's specs.
         if len(segment) > 11000:  
@@ -124,14 +133,15 @@ class AudioProcessor():
             if new_silence_periods is not None:
                 new_midpoints = [(start + end) / 2 for start, end in new_silence_periods]
                 counter = self.split_and_transcribe_audio(new_midpoints, counter, audio_path=temp_segment_path)
-                segment_processed = True
+                #segment_processed = True
             else:
                 print(f"Unable to split the segment further. Segment duration: {len(segment)/1000.0} seconds. It will be processed as is.")
 
         
         # This block now only executes if the segment wasn't processed (split) above, that is to say if the segment is shorter or equal to 11 seconds
         # or if it couldn't be split further
-        if not segment_processed:
+        #if not segment_processed:
+        else:
             suffix = ""
             if self.config.transcription_choice:
                 transcription = self.transcribe_audio(temp_segment_path)
