@@ -25,172 +25,132 @@ class AudioProcessor():
     def __init__(self, config):
         self.config = config
         self.audio = AudioSegment.from_file(config.filepath)
- 
-    def detect_silences(self, decibel="-23dB", audio_path=None):
-        '''Function to detect silences in an audio'''
+    
+    def detect_silences(self, path, time, decibel="-23dB"):
+        path = path or self.config.filepath
+        time = time or self.config.filepath
 
-        # Use provided path or default to config.
-        audio_path = audio_path or self.config.filepath
-        
-         # Construct the ffmpeg command for silence detection.
-        command = ["ffmpeg","-i",audio_path,"-af",f"silencedetect=n={decibel}:d={str(self.config.time_threshold)}","-f","null","-"]
 
-         # Execute the command and capture stdout and stderr.
+        command = ["ffmpeg","-i",path,"-af",f"silencedetect=n={decibel}:d={str(time)}","-f","null","-"]
         out = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = out.communicate()
-
-        # Decoding and splitting ffmpeg output
-        output = stdout.decode("utf-8")
-        silence_info = output.split('[silencedetect @')
-        silence_starts = []
-        silence_ends = []
-
-        # If no silence detected, return an indication message. We need this here too because the function can be called recursively.
-        if len(silence_info) <= 1:
-            return('No silence was detected')
-
-        # Extract silence start and end times from the ffmpeg output.
-        for index, segment in enumerate(silence_info[1:], start=1): # [1:] because we need only a certain portion of the ffmpeg output.
-            segment_details = segment.split(']')[1]
-            if time_values := re.findall(r"[-+]?\d*\.\d+|\d+", segment_details): # Extracting the actual values of start and end times, and then converting them to floats
-                time = float(time_values[0])
-
-                # Checking whether the time should be either the start or end time according to where we are in the iteration
-                if index % 2 == 0 :
-                    silence_ends.append(time)
-                else:
-                    silence_starts.append(time)
-
-        # Return a list of tuples, each representing a silence period (start, end).
-        return list(zip(silence_starts, silence_ends))
-
-    def extract_midpoints(self, silence_periods):
-        """
-        Calculates midpoints of silence periods for determining where to split the audio.
-        """
-
-        midpoints = []
-
-        for period in silence_periods:
-            # Ensure period is a tuple of start and end times.
-            if isinstance(period, (list, tuple)) and len(period) == 2:
-                start, end = period
-                # Calculate and add the midpoint.
-                midpoints.append((start + end) / 2)
+        s = stdout.decode("utf-8")
+        k = s.split('[silencedetect @')
+        if len(k) == 1:
+            return None
+        start, end = [], []
+        for i in range(1, len(k)):
+            x = k[i].split(']')[1]
+            float_values = re.findall(r"[-+]?\d*\.\d+|\d+", x)
+            if not float_values:
+                continue
+            x = float(float_values[0])
+            if i % 2 == 0:
+                end.append(x)
             else:
-                print(f"Skipping invalid silence period format: {period}")
-        return midpoints
-
-    def process_segment(self, start_point, end_point):
-        """
-        Extracts a segment from the audio file between specified start and end points.
-        """
-        # Slice the audio segment from the main audio file, and converting it to miliseconds for Pydub.
-        segment = self.audio[start_point * 1000 : end_point * 1000]
-
-        # Create a temporary folder for storing the audio segment.
-        temp_segment_folder = os.path.join(self.config.output_folder, 'temp')
-                                           
-        if not os.path.exists(temp_segment_folder):
-            os.makedirs(temp_segment_folder)
-
-         # Define the path for the temporary audio segment.
-        temp_segment_name = f'temp_segment.{self.config.export_format}'
-        temp_segment_path = os.path.join(temp_segment_folder, temp_segment_name)
-
-        # Export the audio segment to the specified path.
-        segment.export(temp_segment_path, format=self.config.export_format)
-
-        return temp_segment_path, len(segment)
+                start.append(x)
+        return list(zip(start, end))
     
-    def transcribe_segment(self, segment_path, model):
-        """
-        Transcribes the audio segment using Whisper and returns the transcription text.
-        """
-        model = whisper.load_model(model)
-        transcription = model.transcribe(segment_path)
+    def split_and_transcribe_audio(self, midpoints, counter=1, audio_path=None):
+        def transcribe_audio(audio_path, whisper_model):
+            model = whisper.load_model(whisper_model)
+            transcription = model.transcribe(audio_path)
+            transcription_text = transcription['text']
+            sanitized_transcription = re.sub(r'[?!,;."]', "_", transcription_text[:150])
+            return sanitized_transcription
 
-        # Clean up the transcription text for use in filenames or display.
-        transcription_text = transcription['text']
-        return re.sub(r'[ ?!,;."]', "_", transcription_text[:150])
- 
+        audio_path = audio_path or self.config.filepath
+
+        audio = AudioSegment.from_file(audio_path)
+        input_format = audio_path.split('.')[-1].lower()
+        export_format = input_format if input_format in ['wav', 'mp3', 'm4b'] else 'wav'
+
+        if not os.path.exists(self.config.output_folder):
+            os.makedirs(self.config.output_folder)
+
         
-    def export_segment(self, segment, counter, transcription=None):
-        """
-        Exports the processed audio segment with a formatted name that includes the counter and the transcription.
-        """
-        def normalize_text(text):
-            # Normalize characters to NFD form which separates base characters from accents
-            normalized = unicodedata.normalize('NFD', text)
-            # Remove non-spacing marks (accents) by filtering out characters with the Mn property (Mark, Nonspacing)
-            without_accents = ''.join(c for c in normalized if unicodedata.category(c) != 'Mn')
-            # Replace spaces and any non-alphanumeric characters with underscores
-            with_underscores = re.sub(r'[^a-zA-Z0-9_]', '_', without_accents)
-            # Replace any sequence of multiple underscores with a single underscore
-            clean_text = re.sub(r'__+', '_', with_underscores)
-            return clean_text
+        start_point = 0
+        transcriptions_dict = {}
 
+        for i, end_point in enumerate(midpoints):
+            segment = audio[start_point*1000:end_point*1000]
+            temp_segment_path = f"temp_segment.{export_format}"
+            segment.export(temp_segment_path, format=export_format)
+
+            # Check the duration of the segment
+            if len(segment) > 11000:  # Duration greater than 11 seconds
+                # Try to detect new silence periods with a threshold of 0.5 seconds
+                new_silence_periods = self.detect_silences(temp_segment_path, 0.5)
+                
+                if new_silence_periods is None:  # If no silence found, try another threshold
+                    new_silence_periods = self.detect_silences(temp_segment_path, 0.3)
+                
+                if new_silence_periods is not None:
+                    new_midpoints = [(start + end) / 2 for start, end in new_silence_periods]
+                    # Recursively call the function to handle this segment
+                    counter = self.split_and_transcribe_audio(new_midpoints, counter, audio_path=temp_segment_path)
+                else:
+                    print(f"No silence detected in segment, unable to split further. Segment duration: {len(segment)/1000.0} seconds")
+            else:
+                if self.config.transcription_choice:
+                    transcription = transcribe_audio(temp_segment_path, self.config.transcription_model)
+                    transcription = transcription.replace(" ", "_")
+
+
+                # Use the global counter for the index
+                padded_index = str(counter).zfill(4)
+                counter += 1  # Increment the counter
+
+                if self.config.transcription_choice:
+                    segment_path = os.path.join(self.config.output_folder, f"{self.config.prefix}_{padded_index}_{transcription}.{export_format}")
+
+                else: 
+                    segment_path = os.path.join(self.config.output_folder, f"{self.config.prefix}_{padded_index}.{export_format}")
+
+
+                segment.export(segment_path, format=export_format)
+                print(f"Saved {segment_path}")
+
+                if self.config.transcription_choice:
+                    transcriptions_dict[segment_path] = transcription
+
+            start_point = end_point
+
+        
+
+        # Process the last remaining segment
+        segment = audio[start_point*1000:]
+        temp_segment_path = f"temp_segment.{export_format}"
+        segment.export(temp_segment_path, format=export_format)
+
+        if self.config.transcription_choice:
+            transcription = transcribe_audio(temp_segment_path, self.config.transcription_model)
+            transcription = transcription.replace(" ", "_")
+
+        # Use the global counter for the index
         padded_index = str(counter).zfill(4)
+        counter += 1  # Increment the counter
 
-        # Create a formatted segment name including the counter, padded index, and normalized transcription text.
-        if transcription is not None:
-            temp_segment_name = f"{self.config.prefix}_{padded_index}_{transcription}"
+        if self.config.transcription_choice:
+            segment_path = os.path.join(self.config.output_folder, f"{self.config.prefix}_{padded_index}_{transcription}.{export_format}")
+
         else:
-            temp_segment_name = f"{self.config.prefix}_{padded_index}"
+            segment_path = os.path.join(self.config.output_folder, f"{self.config.prefix}_{padded_index}.{export_format}")
 
-        # Normalize the name
-        segment_name = normalize_text(temp_segment_name)
 
-        segment_path = os.path.join(self.config.output_folder, f"{segment_name}.{self.config.export_format}")
-        segment.export(segment_path, format=self.config.export_format)
+        segment.export(segment_path, format=export_format)
         print(f"Saved {segment_path}")
-        return segment_path
 
+        if self.config.transcription_choice:
+            transcriptions_dict[segment_path] = transcription
 
-    def split_audio(self, start_point, end_point, counter):
-        segment_path, segment_length = self.process_segment(start_point, end_point)
-        transcription=None
-     
-        if segment_length > 11000:
-            return self.handle_long_segment(segment_path, counter)
-        
-        else:
-            if self.config.transcription_choice:
-                transcription = self.transcribe_segment(segment_path, self.config.transcription_model)
-            self.export_segment(self.audio[start_point * 1000:end_point * 1000], counter, transcription=transcription)
-            counter += 1
-            return counter
-
- 
+        return counter  # Return the updated counter
     
-    def handle_long_segment(self, segment_path, counter):
-        new_silence_periods = self.detect_silences("-23dB", segment_path)
-        # Ensure new_silence_periods is a list of tuples before proceeding
-        if not new_silence_periods or isinstance(new_silence_periods, str):
-            print('No new silences detected or error:', new_silence_periods)
-            return counter  # Always return counter, even if no action is taken
-
-        new_midpoints = self.extract_midpoints(new_silence_periods)
-        for i in range(len(new_midpoints) - 1):
-            start_midpoint = new_midpoints[i]
-            end_midpoint = new_midpoints[i + 1]
-            counter = self.split_audio(start_midpoint, end_midpoint, counter)
-        
-        return counter
-    
-    def clean_up(self):
-        temp_segment_folder = os.path.join(self.config.output_folder, 'temp')
-        if os.path.exists(temp_segment_folder):
-            shutil.rmtree(temp_segment_folder)
-            print("Temporary folder deleted:", temp_segment_folder)
 
 
 
 
-
-
-
-def define_process_config(filepath, time_threshold, output_folder, transcription_choice, transcription_model):
+def instantiate_config(filepath, time_threshold, output_folder, transcription_choice, transcription_model):
     input_format = filepath.split('.')[-1].lower()
     prefix = os.path.basename(filepath).rsplit('.', 1)[0]
     
@@ -209,121 +169,121 @@ def define_process_config(filepath, time_threshold, output_folder, transcription
 
     
 
-def detect_silences(path, time, decibel="-23dB"):
-    command = ["ffmpeg","-i",path,"-af",f"silencedetect=n={decibel}:d={str(time)}","-f","null","-"]
-    out = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    stdout, stderr = out.communicate()
-    s = stdout.decode("utf-8")
-    k = s.split('[silencedetect @')
-    if len(k) == 1:
-        return None
-    start, end = [], []
-    for i in range(1, len(k)):
-        x = k[i].split(']')[1]
-        float_values = re.findall(r"[-+]?\d*\.\d+|\d+", x)
-        if not float_values:
-            continue
-        x = float(float_values[0])
-        if i % 2 == 0:
-            end.append(x)
-        else:
-            start.append(x)
-    return list(zip(start, end))
+# def detect_silences(path, time, decibel="-23dB"):
+#     command = ["ffmpeg","-i",path,"-af",f"silencedetect=n={decibel}:d={str(time)}","-f","null","-"]
+#     out = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+#     stdout, stderr = out.communicate()
+#     s = stdout.decode("utf-8")
+#     k = s.split('[silencedetect @')
+#     if len(k) == 1:
+#         return None
+#     start, end = [], []
+#     for i in range(1, len(k)):
+#         x = k[i].split(']')[1]
+#         float_values = re.findall(r"[-+]?\d*\.\d+|\d+", x)
+#         if not float_values:
+#             continue
+#         x = float(float_values[0])
+#         if i % 2 == 0:
+#             end.append(x)
+#         else:
+#             start.append(x)
+#     return list(zip(start, end))
 
-def transcribe_audio(audio_path, whisper_model):
-    model = whisper.load_model(whisper_model)
-    transcription = model.transcribe(audio_path)
-    transcription_text = transcription['text']
-    sanitized_transcription = re.sub(r'[?!,;."]', "_", transcription_text[:150])
-    return sanitized_transcription
-
-
-
-def split_and_transcribe_audio(audio_path, midpoints, output_folder, prefix, transcription_choice, model, counter=1):
-    audio = AudioSegment.from_file(audio_path)
-    input_format = audio_path.split('.')[-1].lower()
-    export_format = input_format if input_format in ['wav', 'mp3', 'm4b'] else 'wav'
-
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    
-    start_point = 0
-    transcriptions_dict = {}
-
-    for i, end_point in enumerate(midpoints):
-        segment = audio[start_point*1000:end_point*1000]
-        temp_segment_path = f"temp_segment.{export_format}"
-        segment.export(temp_segment_path, format=export_format)
-
-        # Check the duration of the segment
-        if len(segment) > 11000:  # Duration greater than 11 seconds
-            # Try to detect new silence periods with a threshold of 0.5 seconds
-            new_silence_periods = detect_silences(temp_segment_path, 0.5)
-            
-            if new_silence_periods is None:  # If no silence found, try another threshold
-                new_silence_periods = detect_silences(temp_segment_path, 0.3)
-            
-            if new_silence_periods is not None:
-                new_midpoints = [(start + end) / 2 for start, end in new_silence_periods]
-                # Recursively call the function to handle this segment
-                counter = split_and_transcribe_audio(temp_segment_path, new_midpoints, output_folder, prefix, transcription_choice, model, counter)
-            else:
-                print(f"No silence detected in segment, unable to split further. Segment duration: {len(segment)/1000.0} seconds")
-        else:
-            if transcription_choice:
-                transcription = transcribe_audio(temp_segment_path, model)
-                transcription = transcription.replace(" ", "_")
+# def transcribe_audio(audio_path, whisper_model):
+#     model = whisper.load_model(whisper_model)
+#     transcription = model.transcribe(audio_path)
+#     transcription_text = transcription['text']
+#     sanitized_transcription = re.sub(r'[?!,;."]', "_", transcription_text[:150])
+#     return sanitized_transcription
 
 
-            # Use the global counter for the index
-            padded_index = str(counter).zfill(4)
-            counter += 1  # Increment the counter
 
-            if transcription_choice:
-                segment_path = os.path.join(output_folder, f"{prefix}_{padded_index}_{transcription}.{export_format}")
+# def split_and_transcribe_audio(audio_path, midpoints, output_folder, prefix, transcription_choice, model, counter=1):
+#     audio = AudioSegment.from_file(audio_path)
+#     input_format = audio_path.split('.')[-1].lower()
+#     export_format = input_format if input_format in ['wav', 'mp3', 'm4b'] else 'wav'
 
-            else: 
-                segment_path = os.path.join(output_folder, f"{prefix}_{padded_index}.{export_format}")
-
-
-            segment.export(segment_path, format=export_format)
-            print(f"Saved {segment_path}")
-
-            if transcription_choice:
-                transcriptions_dict[segment_path] = transcription
-
-        start_point = end_point
+#     if not os.path.exists(output_folder):
+#         os.makedirs(output_folder)
 
     
+#     start_point = 0
+#     transcriptions_dict = {}
 
-    # Process the last remaining segment
-    segment = audio[start_point*1000:]
-    temp_segment_path = f"temp_segment.{export_format}"
-    segment.export(temp_segment_path, format=export_format)
+#     for i, end_point in enumerate(midpoints):
+#         segment = audio[start_point*1000:end_point*1000]
+#         temp_segment_path = f"temp_segment.{export_format}"
+#         segment.export(temp_segment_path, format=export_format)
 
-    if transcription_choice:
-        transcription = transcribe_audio(temp_segment_path, model)
-        transcription = transcription.replace(" ", "_")
+#         # Check the duration of the segment
+#         if len(segment) > 11000:  # Duration greater than 11 seconds
+#             # Try to detect new silence periods with a threshold of 0.5 seconds
+#             new_silence_periods = ap.detect_silences(temp_segment_path, 0.5)
+            
+#             if new_silence_periods is None:  # If no silence found, try another threshold
+#                 new_silence_periods = ap.detect_silences(temp_segment_path, 0.3)
+            
+#             if new_silence_periods is not None:
+#                 new_midpoints = [(start + end) / 2 for start, end in new_silence_periods]
+#                 # Recursively call the function to handle this segment
+#                 counter = split_and_transcribe_audio(temp_segment_path, new_midpoints, output_folder, prefix, transcription_choice, model, counter)
+#             else:
+#                 print(f"No silence detected in segment, unable to split further. Segment duration: {len(segment)/1000.0} seconds")
+#         else:
+#             if transcription_choice:
+#                 transcription = transcribe_audio(temp_segment_path, model)
+#                 transcription = transcription.replace(" ", "_")
 
-    # Use the global counter for the index
-    padded_index = str(counter).zfill(4)
-    counter += 1  # Increment the counter
 
-    if transcription_choice:
-        segment_path = os.path.join(output_folder, f"{prefix}_{padded_index}_{transcription}.{export_format}")
+#             # Use the global counter for the index
+#             padded_index = str(counter).zfill(4)
+#             counter += 1  # Increment the counter
 
-    else:
-        segment_path = os.path.join(output_folder, f"{prefix}_{padded_index}.{export_format}")
+#             if transcription_choice:
+#                 segment_path = os.path.join(output_folder, f"{prefix}_{padded_index}_{transcription}.{export_format}")
+
+#             else: 
+#                 segment_path = os.path.join(output_folder, f"{prefix}_{padded_index}.{export_format}")
 
 
-    segment.export(segment_path, format=export_format)
-    print(f"Saved {segment_path}")
+#             segment.export(segment_path, format=export_format)
+#             print(f"Saved {segment_path}")
 
-    if transcription_choice:
-        transcriptions_dict[segment_path] = transcription
+#             if transcription_choice:
+#                 transcriptions_dict[segment_path] = transcription
 
-    return counter  # Return the updated counter
+#         start_point = end_point
+
+    
+
+#     # Process the last remaining segment
+#     segment = audio[start_point*1000:]
+#     temp_segment_path = f"temp_segment.{export_format}"
+#     segment.export(temp_segment_path, format=export_format)
+
+#     if transcription_choice:
+#         transcription = transcribe_audio(temp_segment_path, model)
+#         transcription = transcription.replace(" ", "_")
+
+#     # Use the global counter for the index
+#     padded_index = str(counter).zfill(4)
+#     counter += 1  # Increment the counter
+
+#     if transcription_choice:
+#         segment_path = os.path.join(output_folder, f"{prefix}_{padded_index}_{transcription}.{export_format}")
+
+#     else:
+#         segment_path = os.path.join(output_folder, f"{prefix}_{padded_index}.{export_format}")
+
+
+#     segment.export(segment_path, format=export_format)
+#     print(f"Saved {segment_path}")
+
+#     if transcription_choice:
+#         transcriptions_dict[segment_path] = transcription
+
+#     return counter  # Return the updated counter
 
 def get_audio_duration(file_path):
     audio = AudioSegment.from_file(file_path, format="mp3")
@@ -363,39 +323,29 @@ def split_main(files, time_threshold, output_folder, transcription_choice, trans
         if file_extension not in allowed_extensions:
             return f"Unsupported audio format: {file_extension}. Please use WAV or MP3."
 
-        process_config = define_process_config(file, time_threshold, output_folder, transcription_choice, transcription_model)
+        process_config = instantiate_config(file, time_threshold, output_folder, transcription_choice, transcription_model)
 
         if not os.path.exists(process_config.output_folder):
             os.makedirs(process_config.output_folder)
-        
-        ap = AudioProcessor(process_config)
-        silence_list = detect_silences(process_config.filepath, process_config.time_threshold)
 
-        if not silence_list:
-            return 'No silence detected'
+        ap = AudioProcessor(process_config)
+
+
+
+
+        if silence_list := ap.detect_silences(
+            process_config.filepath, process_config.time_threshold
+        ):
+            midpoints = [(start + end) / 2 for start, end in silence_list]
+            ap.split_and_transcribe_audio(midpoints, counter)
 
         else:
-            midpoints = [(start + end) / 2 for start, end in silence_list]
-            split_and_transcribe_audio(process_config.filepath, midpoints, output_folder, process_config.prefix, 
-                                       process_config.transcription_choice, process_config.transcription_model, counter)
+            return 'No silence detected'
 
         usable_folder = os.path.join(process_config.output_folder, 'Usable')
         non_usable_folder = os.path.join(process_config.output_folder, 'NonUsable')
         move_usable_files(process_config.output_folder, usable_folder, non_usable_folder)
 
-        # if not silence_list or silence_list == 'No silence was detected':
-        #     return no_silence_message  # Stop and return if no silences detected
 
-
-        # midpoints = ap.extract_midpoints(silence_list)
-        # counter = 1
-        # start_point = 0 
-
-
-        # for end_point in midpoints:
-        #     counter = ap.split_audio(start_point, end_point, counter)
-        #     start_point = end_point
-        
-        # ap.clean_up()
 
         return('Your audios were successfully splitted.')
