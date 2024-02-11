@@ -14,17 +14,13 @@ def transcribe_audios(input, model, export_folder):
 
     for audio in os.listdir(input):
         if any(audio.endswith(ext) for ext in extensions):
-            audio_path = os.path.join(input, audio)
-            audio_name = os.path.splitext(audio)[0]
-            
+            audio_path = os.path.join(input, audio)  
             result = model.transcribe(audio_path)
-
-            # Add to the transcriptions dictionary
             transcriptions[audio] = result
 
     # Write to a JSON file
     with open(export_path, 'w') as json_file:
-        json.dump(transcriptions, json_file, indent=4)
+        json.dump(transcriptions, json_file, indent=4, sort_keys=True)
     
     
 
