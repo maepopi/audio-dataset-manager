@@ -1,12 +1,10 @@
 import gradio as gr
-
-
-from analyze_utils import analyze_main
+import analyze_utils as utils
 
 def create_analyze_audio_interface():
     with gr.Blocks() as interface:
         
-        # with gr.Tab('Analyze audios'):
+        with gr.Tab('Analyze audios'):
             with gr.Row():
                 with gr.Column():
 
@@ -15,12 +13,37 @@ def create_analyze_audio_interface():
                         label="Choose an audio to analyze",
                         waveform_options={'show_controls':True})
                     
-                    transcribe_btn = gr.Button("Analyze")
+                    analyze_btn = gr.Button("Analyze (WIP)")
 
                 with gr.Column():
-                    out=gr.TextArea(label='Console Output')
+                    analyze_out=gr.TextArea(label='Console Output')
 
                     
-                transcribe_btn.click(fn=analyze_main, inputs=[files_input], outputs=out)
+                analyze_btn.click(fn=utils.analyze_main, inputs=[files_input], outputs=analyze_out)
+        
+        with gr.Tab('Convert audios'):
+            with gr.Row():
+                with gr.Column():
+
+                    files_input = gr.Textbox(
+                                    label="Input Folder",
+                                    info = "Write the folder to your input audios")
+
+                    
+                    export_folder = output_folder = gr.Textbox(
+                        label = 'Output Folder',
+                        info = 'Type the path where you want to output the converted audios')
+                    
+                    export_format = gr.Dropdown(label='Export format',
+                                                info= 'What is the output format you want?',
+                                                choices=['.wav', '.mp3'])
+                    
+                    convert_btn = gr.Button("Convert")
+
+                with gr.Column():
+                    convert_out=gr.TextArea(label='Console Output')
+
+                    
+                convert_btn.click(fn=utils.convert_main, inputs=[files_input, export_folder, export_format], outputs=convert_out)
 
     return interface
