@@ -27,28 +27,52 @@ class AudioProcessor():
         self.audio = AudioSegment.from_file(config.filepath)
     
     def detect_silences(self, path, time, decibel="-23dB"):
-        path = path or self.config.filepath
-        time = time or self.config.filepath
+        # path = path or self.config.filepath
+        # time = time or self.config.time
 
-
+        # Building the ffmpeg command for detecting silences
         command = ["ffmpeg","-i",path,"-af",f"silencedetect=n={decibel}:d={str(time)}","-f","null","-"]
         out = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Storing the output of the ffmpeg output into stdout
         stdout, stderr = out.communicate()
-        s = stdout.decode("utf-8")
-        k = s.split('[silencedetect @')
-        if len(k) == 1:
+
+        # Decoding the ffmpeg output
+        ffmpeg_output = stdout.decode("utf-8")
+
+        # We get the portion of the output that arrives after the silencedetect @ tag, and which contains the silence timestamps
+        split_output = ffmpeg_output.split('[silencedetect @')
+
+        # Checks if the split operation resulted in only one part. 
+        # This would indicate that the silencedetect log marker was not found, suggesting no silences were detected. In this case, the method returns None.
+        if len(split_output) == 1:
             return None
+        
+        # Initializing two lists, one for the start timestamps, the other for the end timestamps
         start, end = [], []
-        for i in range(1, len(k)):
-            x = k[i].split(']')[1]
-            float_values = re.findall(r"[-+]?\d*\.\d+|\d+", x)
-            if not float_values:
+
+        # Iterating over each part of the split output, starting from the second element index (1) because we're not interested in the first part.
+        for i in range(1, len(split_output)):
+
+            # For each part, further split the expression so that we isolate the part containing the timestamps
+            timestamp_info = split_output[i].split(']')[1]
+
+            # We extract the actual timestamps under the form of strings, using a Regex excpression
+            extracted_timestamps = re.findall(r"[-+]?\d*\.\d+|\d+", timestamp_info)
+
+            if not extracted_timestamps:# Not sure what this does
                 continue
-            x = float(float_values[0])
+
+            # Converting the timestamp into a float
+            timestamp_info = float(extracted_timestamps[0])
+
+            # Alternating between assigning the timestamp to a start or an end based on where we are in the iteration. If i is an even number, 
+            # it means the timestamp we currently have is an end time.
+            
             if i % 2 == 0:
-                end.append(x)
+                end.append(timestamp_info)
             else:
-                start.append(x)
+                start.append(timestamp_info)
         return list(zip(start, end))
     
     def transcribe_audio(self, audio_path):
