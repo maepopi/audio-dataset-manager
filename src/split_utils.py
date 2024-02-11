@@ -97,23 +97,16 @@ class AudioProcessor():
         # Sanitize prefix and suffix: replace spaces with '_', remove special characters, and avoid consecutive underscores
         sanitize = lambda s: re.sub(r'_{2,}', '_', re.sub(r'[^a-zA-Z0-9_]', '_', s.replace(' ', '_')))
         sanitized_prefix = sanitize(self.config.prefix)
-
-        if suffix:
-            sanitized_suffix = sanitize(suffix)
-        
-
-         # Construct the file name
-        file_name = f"{sanitized_prefix}_{padded_index}_{sanitized_suffix}.{export_format}".strip('_')
+        sanitized_suffix = sanitize(suffix) if suffix else ''
+        file_name = f"{sanitized_prefix}_{padded_index}_{sanitized_suffix}".strip('_')
 
         # Further ensure no consecutive underscores and no leading/trailing underscore
-        file_name = re.sub(r'_+', '_', file_name)
+        file_name = re.sub(r'_+', '_', file_name).rstrip('_')  # Remove trailing underscore if present
 
-
-        segment_path = os.path.join(self.config.output_folder, file_name)
+        segment_path = os.path.join(self.config.output_folder, f'{file_name}.{export_format}')
         segment.export(segment_path, format=export_format)
         print(f"Saved {segment_path}")
         return counter + 1
-
     
     def process_segment(self, audio, start_point, end_point, counter, export_format):
 
