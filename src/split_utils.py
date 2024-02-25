@@ -189,6 +189,7 @@ class AudioProcessor():
 def instantiate_config(filepath, time_threshold, output_folder, transcription_choice, transcription_model):
     input_format = filepath.split('.')[-1].lower()
     prefix = os.path.basename(filepath).rsplit('.', 1)[0]
+    output_folder = os.path.join(output_folder, prefix)
     
    
     return AudioProcess_Config(
@@ -230,17 +231,35 @@ def move_usable_files(source, usable_folder, not_selected_folder):
             print(f"Moved: {filename}, Duration: {duration} seconds")
 
 
-def split_main(files, time_threshold, output_folder, transcription_choice, transcription_model):
+def get_files(folder):
+    files = []
     allowed_extensions = ['.mp3', '.wav']
-    no_silence_message = f'No silences of {time_threshold} seconds where detected. Try a shorter time period.'
-    counter = 1
 
-
-    for file in files:
+    for file in os.listdir(folder):
+        
+        print(f'file is {file}')
         _, file_extension = os.path.splitext(file)
         if file_extension not in allowed_extensions:
             return f"Unsupported audio format: {file_extension}. Please use WAV or MP3."
 
+        filepath = os.path.join(folder, file)
+        files.append(filepath)
+
+    return files
+
+
+    
+def split_main(filepath, time_threshold, output_folder, transcription_choice, transcription_model):
+
+    no_silence_message = f'No silences of {time_threshold} seconds where detected. Try a shorter time period.'
+    counter = 1
+
+    files = get_files(filepath)
+
+
+    for file in files:
+
+        
         process_config = instantiate_config(file, time_threshold, output_folder, transcription_choice, transcription_model)
 
         if not os.path.exists(process_config.output_folder):
@@ -258,9 +277,9 @@ def split_main(files, time_threshold, output_folder, transcription_choice, trans
             return no_silence_message
 
         usable_folder = os.path.join(process_config.output_folder, 'Usable')
-        non_usable_folder = os.path.join(process_config.output_folder, 'NonUsable')
+        non_usable_folder = os.path.join(process_config.output_folder,  'NonUsable')
         move_usable_files(process_config.output_folder, usable_folder, non_usable_folder)
 
 
 
-        return('Your audios were successfully splitted.')
+    return('Your audios were successfully splitted.')
