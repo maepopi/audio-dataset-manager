@@ -135,7 +135,7 @@ Start by putting the path to your JSON and audios. Your folder **must** be organ
   - whisper.json
 
 
-Hit **Load** when you're ready.
+Hit **Load** when you're ready. This will create a copy of your original JSON, and rename it with "backup" in the title. This way, when you make changes on the original JSON all along the way, your backup will remain untouched.
 
 #### Manage your data
 Once you've loaded your audios and the corresponding transcription JSON, you will basically be able to scroll through all your clips under the form of pages. Each page correspond to one clip, and more specifically to an entry in your JSON file. If there are 400 clips, there will be 400 entries in your JSON, and thus 400 pages.
@@ -151,8 +151,9 @@ You can also modify the **start** and **end** timecodes. Let's assume your clip 
 > There is currently no autosave when the JSON is changed. That means that you **MUST** remember to hit the **Save JSON** button before changing the page, or your changes will be lost!!
 
 #### Delete from dataset
-Under the JSON category, you have a button **Delete from dataset**. If you hit this, the current audio / entry will be deleted from your JSON file. **Beware : there is no confirmation box for this, so once you have deleted the entry from the JSON, there is no going back!**
+Under the JSON category, you have a button **Delete from dataset**. If you hit this, the current audio / entry will be deleted from your JSON file. 
 
+When you do this, what happens is that a folder **"Discarded Audios"** will be created in your "audios" folder, containing the audio you've just deleted. As for the entry deleted in the JSON, it will be written in a **"discarded_entries.json"** file. This way, if you made a mistake, you can put your audio back into the original folder, and rewrite the discarded entry into your JSON file. 
 
 
 ### Next steps
