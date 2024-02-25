@@ -237,6 +237,7 @@ def split_main(files, time_threshold, output_folder, transcription_choice, trans
 
 
     for file in files:
+ 
         _, file_extension = os.path.splitext(file)
         if file_extension not in allowed_extensions:
             return f"Unsupported audio format: {file_extension}. Please use WAV or MP3."

@@ -36,9 +36,17 @@ Once the repo is cloned, enter it using the "cd" command in your terminal. Then 
 
 ``` pip install -r requirements.txt```
 
+Then install ffmpeg:
+
+``` sudo apt install ffmpeg ```
+
 Then, still in your terminal, type :
 
 ```python webui_main.py```
+
+or
+
+```python3 webui_main.py```
 
 
 ### Windows 
