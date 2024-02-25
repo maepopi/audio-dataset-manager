@@ -35,16 +35,22 @@ class AudioJsonHandler():
 
         return self.change_audio(0, json_folder, *all_segment_boxes, total_segment_components=total_segment_components)
 
+    def delete_multiple(self, json_folder, index, start_key, end_key, total_segment_components):
+        keys_to_delete = [
+            key for key in self.json_data.keys() if start_key <= key <= end_key
+        ]
 
-    def delete_entry(self, json_folder, index, audio_name, total_segment_components):
+        return self.delete_entries(json_folder, index, keys_to_delete, total_segment_components, audios_to_delete=len(keys_to_delete))
+
+        
+
+
+    def delete_entries(self, json_folder, index, audio_names, total_segment_components, audios_to_delete=1):
         # Part of this function gets repeated with save json, needs refactor
-      
-
         def delete_from_JSON():
-            # json_file = self.get_json(json_folder)
-            # json_file_path = os.path.join(json_folder, json_file)
             discarded_entries_path = os.path.join(json_folder, 'discarded_entries.json')
-
+            discarded_entries = {}
+           
             # Opening the JSON and loading its contents
             with open(self.json_path, 'r+') as file:
                 self.json_data = json.load(file)
@@ -53,10 +59,15 @@ class AudioJsonHandler():
                 if len(self.json_data) <= 1:
                     log_message = 'Cannot delete the last audio of the dataset'
                     return self.change_audio(index, json_folder, total_segment_components=total_segment_components, info_message=log_message)
-
-                # if the entry to delete is indeed in the data, store it in a variable and delete it from the JSON
-                if audio_name in self.json_data:
-                    discarded_entry = self.json_data.pop(audio_name, None)
+                
+                # Remove the specified entries and store them for later
+                for audio_name in audio_names:
+                    
+                    if audio_name in self.json_data:
+                        discarded_entries[audio_name] = self.json_data.pop(audio_name)
+                    
+                    else:
+                        print(f'Audio name {audio_name} not found in JSON data')
 
                 # Going back to the start of the file so that we can replace everything with the updated data
                 file.seek(0)
@@ -65,42 +76,46 @@ class AudioJsonHandler():
                 # Truncating at the current position of the cursor so that no extra information is added by accident
                 file.truncate()
             
-            # If the discarded JSON entry file doesn't exist, create it and add the deleted entry
-            if not os.path.exists(discarded_entries_path):
-                with open(discarded_entries_path, 'w') as discarded_json_file:
-                    json.dump({audio_name : discarded_entry}, discarded_json_file, indent=4)
-            
-            # If the discarded JSON entry file exists, oppen it and append the deleted entry
-            else:
-                with open(discarded_entries_path, 'r+') as discarded_json_file:
-                    discarded_json_data = json.load(discarded_json_file)
-                    discarded_json_data[audio_name] = discarded_entry
-                    discarded_json_file.seek(0)
-                    json.dump(discarded_json_data, discarded_json_file, indent=4)
-                    discarded_json_file.truncate()
-        
-
-            
-            
-        
+            # If the discarded JSON entry file doesn't exist, create it and add the deleted entries if there are any
+            if discarded_entries:
+                if not os.path.exists(discarded_entries_path):
+                    with open(discarded_entries_path, 'w') as discarded_json_file:
+                        json.dump(discarded_entries, discarded_json_file, indent=4)
+                
+                # If the discarded JSON entry file exists, oppen it and append the deleted entry
+                else:
+                    with open(discarded_entries_path, 'r+') as discarded_json_file:
+                        discarded_json_data = json.load(discarded_json_file)
+                        discarded_json_data.update(discarded_entries)    
+                        discarded_json_file.seek(0)
+                        json.dump(discarded_json_data, discarded_json_file, indent=4)
+                        discarded_json_file.truncate()
+                      
         def delete_from_audios():
             audio_folder = os.path.join(json_folder, "audios")
             deleted_audio_folder = os.path.join(audio_folder, "Discarded_Audios")
             os.makedirs(deleted_audio_folder, exist_ok=True)
 
             for audio in os.listdir(audio_folder):
-                if audio_name in audio:
+                if audio in audio_names:
                     src = os.path.join(audio_folder, audio)
                     dst = os.path.join(deleted_audio_folder, audio)
                     shutil.move(src, dst)
 
-
-    
+        # Ensure audio_names is a list so that we can treat both the cases where we delete a single or multiple entries
+        if not isinstance(audio_names, list):
+            audio_names = [audio_names]
 
         delete_from_JSON()
         delete_from_audios()
+               
 
-        log_message = f'{audio_name} was successfully deleted from the dataset.'
+        if audios_to_delete == 1:
+            log_message = f'{audio_names} was successfully deleted from the dataset.'
+        
+        else:
+            log_message = f'{audio_names} were successfully deleted from the dataset.'
+
         
         return self.change_audio(index - 1, json_folder, total_segment_components=total_segment_components, info_message=log_message)
 
