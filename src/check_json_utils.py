@@ -7,8 +7,9 @@ class AudioJsonHandler():
     
     def __init__(self):
         self.json_data = None
+        self.json_path = None
     
-    def get_json(self, path):
+    def get_json(self, path,):
         return next(
         (file for file in os.listdir(path) if file.endswith('.json') 
                                             and 'backup' not in file 
@@ -26,8 +27,10 @@ class AudioJsonHandler():
         shutil.copy(original_json_path, backup_json_path)
 
    
-        json_path = os.path.join(json_folder, original_json_file)
-        with open(json_path, 'r') as file:
+        self.json_path = os.path.join(json_folder, original_json_file)
+
+        # We load the json data into the class parameter
+        with open(self.json_path, 'r') as file:
             self.json_data = json.load(file)
 
         return self.change_audio(0, json_folder, *all_segment_boxes, total_segment_components=total_segment_components)
@@ -38,12 +41,12 @@ class AudioJsonHandler():
       
 
         def delete_from_JSON():
-            json_file = self.get_json(json_folder)
-            json_file_path = os.path.join(json_folder, json_file)
+            # json_file = self.get_json(json_folder)
+            # json_file_path = os.path.join(json_folder, json_file)
             discarded_entries_path = os.path.join(json_folder, 'discarded_entries.json')
 
             # Opening the JSON and loading its contents
-            with open(json_file_path, 'r+') as file:
+            with open(self.json_path, 'r+') as file:
                 self.json_data = json.load(file)
 
                 # If there is only one entry in the JSON, return an error
@@ -119,6 +122,8 @@ class AudioJsonHandler():
     
         json_file = self.get_json(json_folder)
         json_file_path = os.path.join(json_folder, json_file)
+
+        # Avoids returning empty strings
         cleaned_textboxes= [i for i in all_segment_boxes if i]
         
 
