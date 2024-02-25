@@ -4,6 +4,10 @@ import subprocess
 
 
 def analyze_main(files):
+    # TODO 
+    # automatically analyze silences with ffmpeg = analyze the silencedetect output, make the sum of all silence durations and divide by the number
+    # of silences found.
+    # Give the shortest silence period , the longest silence period, and the average silence period 
     return('This feature is not yet implemented 😊')
 
 def convert_main(input_folder, export_folder, export_format):
