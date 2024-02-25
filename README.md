@@ -6,10 +6,7 @@ Last year I started diving into AI through voice cloning. My goal was to clone t
 
 I started playing around with the excellent [Tortoise-TTS](https://github.com/neonbjb/tortoise-tts), and then I quickly stumbled upon the tool I've been using since : [MRQ's fantastic ai-voice-cloning repo](https://git.ecker.tech/mrq/ai-voice-cloning). It is basically based on Tortoise-TTS, but allows for finetuning Tortoise base model. 
 
-I've been working with this tool ever since, and I've come up with pretty good results. Here is the example of a model I made of Emiel Regis' voice from The Witcher 3, portrayed by Mark Noble :
-
-[Original clip]
-[Generated clip]
+I've been working with this tool ever since, and I've come up with pretty good results. (Todo, put an example of one of my models)
 
 To make this model, I had to select, curate and label a lot of audio data, especially from audiobooks. This is where I got the idea of making this present tool, to help me go faster in the management of dozens of hours of audio. Thus, I hereby present you, the Audio Dataset Manager!
 
