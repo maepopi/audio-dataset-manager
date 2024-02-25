@@ -147,16 +147,18 @@ Under the JSON category, you have a button **Delete from dataset**. If you hit t
 
 When you do this, what happens is that a folder **"Discarded Audios"** will be created in your "audios" folder, containing the audio you've just deleted. As for the entry deleted in the JSON, it will be written in a **"discarded_entries.json"** file. This way, if you made a mistake, you can put your audio back into the original folder, and rewrite the discarded entry into your JSON file. 
 
+You can also delete multiple audios at the same time. Under the button **"Delete multiple audios from dataset"**, you have **"Start audio"** and **"End audio"**. 
+- In **"Start audio"**, write the exact name of the audio file (including the extension) from which you want to *start* deleting the keys (the start audio will be included in the deleted entries). 
+- In **"End audio"**, write the exact name of the audio file (including the extension) from which you want to *stop* deleting the keys (the stop audio will be included in the deleted entries.)
+
 
 ### Next steps
 
 
 
 TO DO : 
-- currently only the JSON entry is deleted, not the audio in the "audios folder". Add the fact that deleting the entry moves the corresponding audio into a subfolder called "deleted".
-- At the loading step, duplicate the JSON and make a backup. Work on the copy.
-- Add a "multiple" delete where you can choose which pages you want to delete from your dataset. E.g in my case, Mark Noble is a fantastic voice actor who changes his voice almost each time he reads a character's part. Which results in, sometimes, a voice completely different as the one he does for Regis in The Witcher 3 games. This results in me having to delete sometimes 100 clips in a row. 
-- Test and document the installation and use of the tool on Windows
 
+- Test and document the installation and use of the tool on Windows
+- Test, test, test, and retest again.
 
 
