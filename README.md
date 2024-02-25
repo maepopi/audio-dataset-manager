@@ -74,7 +74,7 @@ This tab allows you to convert audios so they can be processed later in the tool
 
 This tab allows you to split your audio into smaller clips for training. MRQ's ai-voice-cloning tool indeed requires clips between **0.6 and 11 seconds** in the training dataset. So if you have an audiobook, well, you'll have to split it.
 
-In **Choose the files to segment**, load the audios you want to segment. Then, in **Silence duration**, put the minimum duration for a silence to be considered a silence, and tagged to be split in the middle. For instance, if you have a sentence like this :
+In **Input Folder**, put the path to the folder where your audios to be segmented are located. Then, in **Silence duration**, put the minimum duration for a silence to be considered a silence, and tagged to be split in the middle. For instance, if you have a sentence like this :
 
 *"I went to the bar, and ordered a drink. [Silence of 0.8 seconds] The barman smiled and went to work."*
 
