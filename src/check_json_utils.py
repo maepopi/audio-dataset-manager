@@ -10,7 +10,7 @@ class AudioJsonHandler():
     
     def get_json(self, path):
         return next(
-        (file for file in os.listdir(path) if file.endswith('.json')), None)
+        (file for file in os.listdir(path) if file.endswith('.json') and 'backup' not in file), None)
 
     def load_and_init(self, json_folder, *all_segment_boxes, total_segment_components):
         original_json_file = self.get_json(json_folder)
@@ -33,24 +33,45 @@ class AudioJsonHandler():
 
     def delete_entry(self, json_folder, index, audio_name, total_segment_components):
         # Part of this function gets repeated with save json, needs refactor
-        # Add deletion of the audio as well
-        json_file = self.get_json(json_folder)
-        json_file_path = os.path.join(json_folder, json_file)
+      
 
-        with open(json_file_path, 'r+') as file:
-            self.json_data = json.load(file)
+        def delete_from_JSON():
+            json_file = self.get_json(json_folder)
+            json_file_path = os.path.join(json_folder, json_file)
 
-            if len(self.json_data) <= 1:
-                log_message = 'Cannot delete the last audio of the dataset'
-                return self.change_audio(index, json_folder, total_segment_components=total_segment_components, info_message=log_message)
+            with open(json_file_path, 'r+') as file:
+                self.json_data = json.load(file)
 
-            if audio_name in self.json_data:
-                self.json_data.pop(audio_name)
+                if len(self.json_data) <= 1:
+                    log_message = 'Cannot delete the last audio of the dataset'
+                    return self.change_audio(index, json_folder, total_segment_components=total_segment_components, info_message=log_message)
+
+                if audio_name in self.json_data:
+                    self.json_data.pop(audio_name)
+                
+                file.seek(0)
+                json.dump(self.json_data, file, indent=4)
+                file.truncate()
             
-            file.seek(0)
-            json.dump(self.json_data, file, indent=4)
-            file.truncate()
+            
         
+        def delete_from_audios():
+            audio_folder = os.path.join(json_folder, "audios")
+            deleted_audio_folder = os.path.join(audio_folder, "Discarded_Audios")
+            os.makedirs(deleted_audio_folder, exist_ok=True)
+
+            for audio in os.listdir(audio_folder):
+                if audio_name in audio:
+                    src = os.path.join(audio_folder, audio)
+                    dst = os.path.join(deleted_audio_folder, audio)
+                    shutil.move(src, dst)
+
+
+    
+
+        delete_from_JSON()
+        delete_from_audios()
+
         log_message = f'{audio_name} was successfully deleted from the dataset.'
         
         return self.change_audio(index - 1, json_folder, total_segment_components=total_segment_components, info_message=log_message)
