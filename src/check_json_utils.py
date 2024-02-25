@@ -1,6 +1,7 @@
 import json
 import os
 import gradio as gr
+import shutil
 
 class AudioJsonHandler():
     
@@ -12,8 +13,18 @@ class AudioJsonHandler():
         (file for file in os.listdir(path) if file.endswith('.json')), None)
 
     def load_and_init(self, json_folder, *all_segment_boxes, total_segment_components):
-        json_file = self.get_json(json_folder)
-        json_path = os.path.join(json_folder, json_file)
+        original_json_file = self.get_json(json_folder)
+        original_json_path = os.path.join(json_folder, original_json_file)
+
+        # Create a backup
+        json_name = os.path.splitext(original_json_file)[0]
+        backup_json_file = f'{json_name}_backup.json'
+        backup_json_path = os.path.join(json_folder, backup_json_file)
+
+        shutil.copy(original_json_path, backup_json_path)
+
+   
+        json_path = os.path.join(json_folder, original_json_file)
         with open(json_path, 'r') as file:
             self.json_data = json.load(file)
 
