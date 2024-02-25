@@ -25,9 +25,9 @@ def create_split_audio_interface():
                 with gr.Row():
                     with gr.Column():
                         
-                        files_input = gr.File(file_count="multiple", 
-                                    type="filepath",
-                                    label="Choose the files to segment")
+                        input_folder = gr.Textbox(
+                        label = 'Input Folder',
+                        info = 'Type the path of your audios to be segmented')
                                     
                         silence_float = gr.Number(label = 'Silence duration',
                                     info = 'Minium duration of a silence to be defined as a split point (in seconds)')
@@ -49,7 +49,7 @@ def create_split_audio_interface():
                         out = gr.TextArea(label='Console Output')
 
                     transcription_choice.change(fn=use_transcription, inputs=transcription_choice, outputs = model_choice)
-                    split_btn.click(fn=split_utils.split_main, inputs=[files_input, silence_float, output_folder, transcription_choice, model_choice], outputs=out)
+                    split_btn.click(fn=split_utils.split_main, inputs=[input_folder, silence_float, output_folder, transcription_choice, model_choice], outputs=out)
     
     
     return interface
