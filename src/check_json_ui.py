@@ -45,6 +45,18 @@ def create_check_json_interface():
 
 
         delete_audio = gr.Button('Delete from dataset')
+
+        delete_multiple = gr.Button('Delete multiple audios from dataset')
+
+        with gr.Row():
+            delete_start_audio = gr.Textbox(label='Start audio',
+                                            info='Write the name of the audio from which to start deleting (including the start audio) ')
+            delete_end_audio = gr.Textbox(label='End audio',
+                                            info='Write the name of the audio from which to stop deleting (including the end audio) ')
+        
+
+
+
         current_page_label = gr.Label('Current page : 1/X')
         page_input = gr.Number(label='Enter page', value=1)
         go_button = gr.Button('Go to page')
@@ -71,12 +83,24 @@ def create_check_json_interface():
                                outputs=info_textbox)
         
         delete_audio.click(fn=lambda json_folder, page_input, audio_name_box: 
-                           handler.delete_entry(json_folder,
+                           handler.delete_entries(json_folder,
                                                 page_input, 
                                                 audio_name_box, 
                                                 total_segment_components=total_segment_components), 
 
                            inputs=[json_folder, page_input, audio_name_box],
+
+                           outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes]
+                           )
+
+        delete_multiple.click(fn=lambda json_folder, page_input, delete_start_audio, delete_end_audio: 
+                           handler.delete_multiple(json_folder,
+                                                page_input,
+                                                delete_start_audio,
+                                                delete_end_audio,
+                                                total_segment_components=total_segment_components), 
+
+                           inputs=[json_folder, page_input, delete_start_audio, delete_end_audio],
 
                            outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes]
                            )
