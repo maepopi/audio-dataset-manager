@@ -86,6 +86,7 @@ Then Whisper:
 
 ```pip install openai-whisper```
 
+Now you should be good to go 😀
 
 
 
@@ -199,8 +200,8 @@ You can also delete multiple audios at the same time. Under the button **"Delete
 
 
 TO DO : 
-
-- Test and document the installation and use of the tool on Windows
+- Add the automatic silence threshold analysis
+- Add train/validation dataset manager
 - Test, test, test, and retest again.
 
 
