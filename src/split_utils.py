@@ -235,14 +235,22 @@ def get_files(folder):
     files = []
     allowed_extensions = ['.mp3', '.wav']
 
-    for file in os.listdir(folder):
+    for item in os.listdir(folder):
         
-        print(f'file is {file}')
-        _, file_extension = os.path.splitext(file)
+        # We make sure to reconstruct the path to the item to then ensure it's a file
+        item_path = os.path.join(folder, item)
+
+        # If the item is NOT a file, then we jump to the next iteration
+        if not os.path.isfile(item_path):
+            print(f'Skipping directory: {item}')
+            continue
+
+    
+        _, file_extension = os.path.splitext(item)
         if file_extension not in allowed_extensions:
             return f"Unsupported audio format: {file_extension}. Please use WAV or MP3."
 
-        filepath = os.path.join(folder, file)
+        filepath = os.path.join(folder, item)
         files.append(filepath)
 
     return files
