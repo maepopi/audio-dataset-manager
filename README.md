@@ -11,9 +11,9 @@ I've been working with this tool ever since, and I've come up with pretty good r
 To make this model, I had to select, curate and label a lot of audio data, especially from audiobooks. This is where I got the idea of making this present tool, to help me go faster in the management of dozens of hours of audio. Thus, I hereby present you, the Audio Dataset Manager!
 
 
-## Installation
+## 🔧 Installation
 
-### Linux
+### 🐧 Linux
 
 #### Conda environment
 I personally use Conda a lot so I'd recommend using it here. Download and install [Anaconda] (https://www.anaconda.com/download). Then, create a new environment like this:
@@ -49,7 +49,7 @@ or
 ```python3 webui_main.py```
 
 
-### Windows 
+### 🪟 Windows 
 
 The process should be pretty much the same than under Linux, but I hit some snags in my testing so I'll tell you exactly what I did to make it work.
 
@@ -90,20 +90,20 @@ Now you should be good to go 😀
 
 
 
-## Use
+## 🖱️ Use
 
-### Sound Analysis and Conversion Tab
+### 🪄 Sound Analysis and Conversion Tab
 
 #### Analyze audios
 
 The feature of this tab is not fully developped yet. But basically, it will allow you to input an audio, and analyze its silences : what is the smallest silence period, what is the average silence period, and the maximum (all in seconds). This is supposed to help you define the minimum duration (in seconds, still) for which a silence must last to be considered actual silence. This value will then be used in the Split Audio tab to split your audio along the silences defined by this value as a time threshold.
 
-### Convert audios
+#### Convert audios
 
 This tab allows you to convert audios so they can be processed later in the tool. You need either .mp3 or .wav. In **Input Folder**, paste the path towards the folder holding your audios to be converted. In **Output Folder**, write the output path. Under **Export Format**, choose the format you want your audios to be converted. Then hit **Convert**.
 
 
-### Split audio
+### ✂️ Split audio
 
 #### Need to know
 
@@ -135,14 +135,14 @@ However, there are a lot of cases where cutting at the midpoint will still resul
 In the end, if the segment cannot be cut under 11 seconds, it will still get outputted in a folder called "Non Usable". That folder will hold the segments that are under 0.6 seconds, or over 11 seconds. You can then re-cut the long segments yourself.
 
 
-### Transcribe audio
+### 💬 Transcribe audio
 
 In this tab, you'll have the choice between two methods to transcribe your audio segments.
 
 #### This tool
 If you choose this, the transcription will be done internally by the audio dataset manager. Put in the **path to the folder** containing the audios you want to transcribe. Then choose the  **Whisper model** you want to use for the transcription, and the **path to the output folder** where the transcription json will be exported.
 
-### MRA ai-voice-cloning
+#### MRQ ai-voice-cloning
 If you choose this, you'll have a little guide as to how to use MRQ ai-voice-cloning repo to transcribe your audios.
 
 1. Go to MRQ ai-voice-cloning repo: [MRQ ai-voice-cloning](https://git.ecker.tech/mrq/ai-voice-cloning)
@@ -157,7 +157,7 @@ If you choose this, you'll have a little guide as to how to use MRQ ai-voice-clo
 
 
 
-### Check JSON and audios
+### 👀 Check JSON and audios
 This is the tab that you will mostly spend most time in. It is designed to review your segmented audios as well as their retranscription. You can correct the retranscription, update the JSON, and delete audios from your dataset.
 
 #### Input data
@@ -195,7 +195,7 @@ You can also delete multiple audios at the same time. Under the button **"Delete
 - In **"End audio"**, write the exact name of the audio file (including the extension) from which you want to *stop* deleting the keys (the stop audio will be included in the deleted entries.)
 
 
-### Next steps
+### 🚀 Next steps
 
 
 
