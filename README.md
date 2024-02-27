@@ -181,7 +181,7 @@ Then, under your audio, you have the JSON section. **JSON reference** shows the 
 
 You can also modify the **start** and **end** timecodes. Let's assume your clip finished by a sigh, but the sigh did not get transcribed in your JSON. This is bothersome, because you might want to actually train your model to recognize and generate these sighs. Correct the **JSON reference** and concerned **Segment** to add the sigh (something like "Hhhh", but be consistent over your entire dataset), and then change the **end** timecode so that it includes the sigh. You can use the **Audio** widget to determine where exactly the sigh starts and ends.
 
-> **Extremely important** 
+> ⚠️⚠️⚠️ **Extremely important**  ⚠️⚠️⚠️
 >
 > There is currently no autosave when the JSON is changed. That means that you **MUST** remember to hit the **Save JSON** button before changing the page, or your changes will be lost!!
 
