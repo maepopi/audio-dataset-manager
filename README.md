@@ -51,7 +51,41 @@ or
 
 ### Windows 
 
-[I have not yet tested the installation nor use on Windows. WIP.]
+The process should be pretty much the same than under Linux, but I hit some snags in my testing so I'll tell you exactly what I did to make it work.
+
+Download and install [Anaconda] (https://www.anaconda.com/download). Then, create a new environment like this:
+
+```conda create env --name your-env-name python==3.9```
+
+Of course, replace "your-env-name" by the name of your environment. In my case it's "audio-dataset-manager. Once that's done, activate it like this:
+
+```conda activate your-env-name```
+
+#### Clone this repo
+
+Clone this repository using this command:
+
+```git clone https://github.com/maepopi/Audio_Dataset_Manager.git```
+
+#### Setup our environment
+
+Once the repo is cloned, enter it using the "cd" command in your terminal. Then type:
+
+``` pip install -r requirements.txt```
+
+
+At this stage, I had a lot of errors saying that some packages were not compatible with each other. What I did was try and launch the script:
+
+```python webui_main.py```
+
+Then I simply installed manually everything that the script errors said I didn't have. Starting by Gradio:
+
+```pip install gradio```
+
+Then Whisper:
+
+```pip install openai-whisper```
+
 
 
 
