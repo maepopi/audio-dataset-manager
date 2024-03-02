@@ -90,7 +90,7 @@ def create_check_json_interface():
 
                            inputs=[json_folder, page_input, audio_name_box],
 
-                           outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes]
+                           outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, delete_start_audio, delete_end_audio,  *all_segment_boxes]
                            )
 
         delete_multiple.click(fn=lambda json_folder, page_input, delete_start_audio, delete_end_audio: 
@@ -102,7 +102,7 @@ def create_check_json_interface():
 
                            inputs=[json_folder, page_input, delete_start_audio, delete_end_audio],
 
-                           outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, *all_segment_boxes]
+                           outputs=[audio_player, audio_name_box, page_input, current_page_label, json_reference, info_textbox, delete_start_audio, delete_end_audio, *all_segment_boxes]
                            )
 
 

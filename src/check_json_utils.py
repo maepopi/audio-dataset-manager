@@ -214,10 +214,10 @@ class AudioJsonHandler():
             for i in range(len(segments)):
                 new_segment_group.extend(create_segment_group(segments))
 
-            return audio_path, audio_name, index + 1, curent_page_label, audio_text, info_message, *new_segment_group
+            return audio_path, audio_name, index + 1, curent_page_label, audio_text, info_message, "", "", *new_segment_group
         
         new_segment_group = all_segment_boxes
-        return None, "", 1, "Audio not available", "", "Something went wrong. Check whether your JSON file is empty.", *new_segment_group
+        return None, "", 1, "Audio not available", "", "Something went wrong. Check whether your JSON file is empty.", "", "", *new_segment_group
             
             
 
