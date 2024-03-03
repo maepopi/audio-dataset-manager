@@ -33,7 +33,7 @@ class AudioJsonHandler():
         with open(self.json_path, 'r') as file:
             self.json_data = json.load(file)
 
-        return self.change_audio(0, json_folder, *all_segment_boxes, total_segment_components=total_segment_components)
+        return self.update_UI(0, json_folder, *all_segment_boxes, total_segment_components=total_segment_components)
 
     def delete_multiple(self, json_folder, index, start_key, end_key, total_segment_components):
         keys_to_delete = [
@@ -58,7 +58,7 @@ class AudioJsonHandler():
                 # If there is only one entry in the JSON, return an error
                 if len(self.json_data) <= 1:
                     log_message = 'Cannot delete the last audio of the dataset'
-                    return self.change_audio(index, json_folder, total_segment_components=total_segment_components, info_message=log_message)
+                    return self.update_UI(index, json_folder, total_segment_components=total_segment_components, info_message=log_message)
                 
                 # Remove the specified entries and store them for later
                 for audio_name in audio_names:
@@ -117,7 +117,7 @@ class AudioJsonHandler():
             log_message = f'{audio_names} were successfully deleted from the dataset.'
 
         
-        return self.change_audio(index - 1, json_folder, total_segment_components=total_segment_components, info_message=log_message)
+        return self.update_UI(index - 1, json_folder, total_segment_components=total_segment_components, info_message=log_message)
 
 
     def save_json(self, json_folder, text, audio_name, *all_segment_boxes):
@@ -151,23 +151,20 @@ class AudioJsonHandler():
         new_index = page -1 + delta # We adjust for zero-based indexing, and the delta determines which way we move
         # Check if the new_index is within the valid range
         if 0 <= new_index < len(self.json_data):
-            return self.change_audio(new_index, json_folder, total_segment_components=total_segment_components)
+            return self.update_UI(new_index, json_folder, total_segment_components=total_segment_components)
         else:
             # If the new_index is out of bounds, return current state without change
             # To achieve this, subtract delta to revert to original page index
-            return self.change_audio(page - 1, json_folder, total_segment_components=total_segment_components)  # page - 1 adjusts back to zero-based index
+            return self.update_UI(page - 1, json_folder, total_segment_components=total_segment_components)  # page - 1 adjusts back to zero-based index
 
  
             
-    def change_audio(self, index, json_folder, *all_segment_boxes, total_segment_components=None, info_message=""):
-
-
+    def update_UI(self, index, json_folder, *all_segment_boxes, total_segment_components=None, info_message=""):
         def get_audio_file():
             keys_list = list(self.json_data.keys())
             return keys_list[index]
             
-
-        def get_audio_text(audio_name):
+        def get_JSON_reference(audio_name):
             return self.json_data[audio_name]['text']
 
         def create_segment_group(segments):
@@ -190,9 +187,15 @@ class AudioJsonHandler():
             
             return new_segment_group
 
-
+        # Initializing segment creation
         new_segment_group = []
+
+        # Retrieving the current amount of entries in the JSON
         audio_amount = len(self.json_data)
+
+        # Clearing the "delete multiple" start and end textboxes
+        delete_start_audio = gr.update(value="")
+        delete_end_audio = gr.update(value="")
 
          # We make sure the user cannot try and go to before the beginning of audios
         if index < 0:
@@ -200,24 +203,33 @@ class AudioJsonHandler():
         elif index >= audio_amount:
             index = audio_amount - 1  # If the user tries to go to a page out of range, he's drawn back to the last audio
         
+        # Updating the UI with the correct audio information
         if 0 <= index < audio_amount:
             audio_file = get_audio_file()
             audio_name = os.path.basename(audio_file)
             audio_path = os.path.join(json_folder, 'audios', audio_file)
-            audio_text = get_audio_text(audio_name)
-            curent_page_label = f"Current Audio: {index + 1}/{audio_amount}"
+            JSON_reference = get_JSON_reference(audio_name)
+            current_page_label = f"Current Audio: {index + 1}/{audio_amount}"
 
-
+            # Loading the segments related to the audio
             segments = self.json_data[audio_name]['segments']
 
-
+            # Populating the segment section
             for i in range(len(segments)):
                 new_segment_group.extend(create_segment_group(segments))
 
-            return audio_path, audio_name, index + 1, curent_page_label, audio_text, info_message, "", "", *new_segment_group
+            return audio_path, audio_name, index + 1, current_page_label, JSON_reference, info_message, delete_start_audio, delete_end_audio, *new_segment_group
         
+
+        # If there was a problem in loading the audio
         new_segment_group = all_segment_boxes
-        return None, "", 1, "Audio not available", "", "Something went wrong. Check whether your JSON file is empty.", "", "", *new_segment_group
+        audio_path = None
+        audio_name = ""
+        current_page_label = "Audio not available"
+        JSON_reference = ""
+        info_message = "Something went wrong. Check whether your JSON file is empty."
+
+        return None, audio_path, 1, current_page_label, JSON_reference, info_message, delete_start_audio, delete_end_audio, *new_segment_group
             
             
 
