@@ -92,7 +92,7 @@ class AudioProcessor():
     
 
     def export_audio_segment(self, segment, suffix, export_format, counter):
-        padded_index = str(counter).zfill(4)
+        padded_index = str(counter).zfill(6)
 
         # Sanitize prefix and suffix: replace spaces with '_', remove special characters, and avoid consecutive underscores
         sanitize = lambda s: re.sub(r'_{2,}', '_', re.sub(r'[^a-zA-Z0-9_]', '_', s.replace(' ', '_')))
