@@ -191,8 +191,18 @@ Under the JSON category, you have a button **Delete from dataset**. If you hit t
 When you do this, what happens is that a folder **"Discarded Audios"** will be created in your "audios" folder, containing the audio you've just deleted. As for the entry deleted in the JSON, it will be written in a **"discarded_entries.json"** file. This way, if you made a mistake, you can put your audio back into the original folder, and rewrite the discarded entry into your JSON file. 
 
 You can also delete multiple audios at the same time. Under the button **"Delete multiple audios from dataset"**, you have **"Start audio"** and **"End audio"**. 
-- In **"Start audio"**, write the exact name of the audio file (including the extension) from which you want to *start* deleting the keys (the start audio will be included in the deleted entries). 
-- In **"End audio"**, write the exact name of the audio file (including the extension) from which you want to *stop* deleting the keys (the stop audio will be included in the deleted entries.)
+- In **"Start audio"**, write the index of the audio from which you want to start deleting (including the start audio).  *E.g : 1 for my_audio_000001*
+- In **"End audio"**, write the index of the audio from which you want to stop deleting (including the stop audio).  *E.g : 12 for my_audio_000012*
+
+> **Notes**  
+>
+> - With this system, you can also write the index of an audio named *my_audio_000012_words_behind*, that is to say *12* in this case. The algorithm will match the index to the right key in the JSON file.
+>
+> - However, this also means that you need:
+>> - An integer in both fields
+>> - The start value must be smaller than the end value
+>> - The start and end values must be smaller than 6 digits
+
 
 
 ### 🚀 Next steps
