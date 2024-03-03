@@ -5,7 +5,7 @@ import fix_transcription_utils as utils
 handler = utils.AudioJsonHandler()
 
 
-def create_check_json_interface():
+def create_fix_transcription_interface():
     with gr.Blocks() as interface:
         # Constants
         ALL_SEGMENT_BOXES = []
