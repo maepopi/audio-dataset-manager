@@ -8,6 +8,8 @@ class AudioJsonHandler():
     def __init__(self):
         self.json_data = None
         self.json_path = None
+        self.keep_start_audio = False
+        self.keep_end_audio = False
     
     def get_json(self, path,):
         return next(
@@ -33,12 +35,18 @@ class AudioJsonHandler():
         with open(self.json_path, 'r') as file:
             self.json_data = json.load(file)
 
-        return self.change_audio(0, json_folder, *all_segment_boxes, total_segment_components=total_segment_components)
+        return self.update_UI(0, json_folder, *all_segment_boxes, total_segment_components=total_segment_components)
 
     def delete_multiple(self, json_folder, index, start_key, end_key, total_segment_components):
         keys_to_delete = [
             key for key in self.json_data.keys() if start_key <= key <= end_key
         ]
+
+        # In this particular case, the delete start and end boxes are not empty but we WANT them to be cleared after clicking the button.
+        # That is why we needed to add these two boolean as class variables, to be able to manage the clearing depending on the process
+        
+        self.keep_start_audio = False
+        self.keep_end_audio = False
 
         return self.delete_entries(json_folder, index, keys_to_delete, total_segment_components, audios_to_delete=len(keys_to_delete))
 
@@ -47,8 +55,8 @@ class AudioJsonHandler():
 
     def delete_entries(self, json_folder, index, audio_names, total_segment_components, audios_to_delete=1):
         # Part of this function gets repeated with save json, needs refactor
-        def delete_from_JSON():
-            discarded_entries_path = os.path.join(json_folder, 'discarded_entries.json')
+        def delete_from_JSON(discard_folder):
+            discarded_entries_path = os.path.join(discard_folder, 'discarded_entries.json')
             discarded_entries = {}
            
             # Opening the JSON and loading its contents
@@ -58,7 +66,7 @@ class AudioJsonHandler():
                 # If there is only one entry in the JSON, return an error
                 if len(self.json_data) <= 1:
                     log_message = 'Cannot delete the last audio of the dataset'
-                    return self.change_audio(index, json_folder, total_segment_components=total_segment_components, info_message=log_message)
+                    return self.update_UI(index, json_folder, total_segment_components=total_segment_components, info_message=log_message)
                 
                 # Remove the specified entries and store them for later
                 for audio_name in audio_names:
@@ -91,23 +99,33 @@ class AudioJsonHandler():
                         json.dump(discarded_json_data, discarded_json_file, indent=4)
                         discarded_json_file.truncate()
                       
-        def delete_from_audios():
+        def delete_from_audios(discard_folder):
             audio_folder = os.path.join(json_folder, "audios")
-            deleted_audio_folder = os.path.join(audio_folder, "Discarded_Audios")
+            deleted_audio_folder = os.path.join(discard_folder, "Discarded_Audios")
             os.makedirs(deleted_audio_folder, exist_ok=True)
 
             for audio in os.listdir(audio_folder):
                 if audio in audio_names:
                     src = os.path.join(audio_folder, audio)
                     dst = os.path.join(deleted_audio_folder, audio)
-                    shutil.move(src, dst)
+
+                    try:
+                        shutil.move(src, dst)
+                    
+                    except Exception as e:
+                        print(f"Error moving {src} to {dst}: {e}")
+
 
         # Ensure audio_names is a list so that we can treat both the cases where we delete a single or multiple entries
         if not isinstance(audio_names, list):
             audio_names = [audio_names]
 
-        delete_from_JSON()
-        delete_from_audios()
+        discard_folder = os.path.join(json_folder, "Discarded")
+        os.makedirs(discard_folder, exist_ok=True)
+
+
+        delete_from_JSON(discard_folder)
+        delete_from_audios(discard_folder)
                
 
         if audios_to_delete == 1:
@@ -117,7 +135,7 @@ class AudioJsonHandler():
             log_message = f'{audio_names} were successfully deleted from the dataset.'
 
         
-        return self.change_audio(index - 1, json_folder, total_segment_components=total_segment_components, info_message=log_message)
+        return self.update_UI(index - 1, json_folder, total_segment_components=total_segment_components, info_message=log_message)
 
 
     def save_json(self, json_folder, text, audio_name, *all_segment_boxes):
@@ -147,77 +165,110 @@ class AudioJsonHandler():
         return 'The JSON was saved.'
 
 
-    def handle_pagination(self, page, json_folder, delta, total_segment_components):
-        new_index = page -1 + delta # We adjust for zero-based indexing, and the delta determines which way we move
+    def handle_pagination(self, page, json_folder, delete_start_audio, delete_end_audio, delta=None, go_to=None, total_segment_components=None):
+        new_index = page - 1
+
+        if delta:
+            new_index = new_index + delta # We adjust for zero-based indexing, and the delta determines which way we move
+        
+        elif go_to:
+            new_index = go_to
+
+        # Checking whether there's something written in the delete start and end audio textboxes. If they are not empty, we need to keep them 
+        self.keep_start_audio = delete_start_audio != ""
+        self.keep_end_audio = delete_end_audio != ""
+
         # Check if the new_index is within the valid range
         if 0 <= new_index < len(self.json_data):
-            return self.change_audio(new_index, json_folder, total_segment_components=total_segment_components)
+            return self.update_UI(new_index, json_folder, total_segment_components=total_segment_components, delete_start_audio=delete_start_audio, delete_end_audio=delete_end_audio)
         else:
             # If the new_index is out of bounds, return current state without change
             # To achieve this, subtract delta to revert to original page index
-            return self.change_audio(page - 1, json_folder, total_segment_components=total_segment_components)  # page - 1 adjusts back to zero-based index
+            return self.update_UI(page - 1, json_folder, delete_start_audio, delete_end_audio, total_segment_components=total_segment_components)  # page - 1 adjusts back to zero-based index
 
  
             
-    def change_audio(self, index, json_folder, *all_segment_boxes, total_segment_components=None, info_message=""):
-
-
+    def update_UI(self, index, json_folder, *all_segment_boxes, total_segment_components=None, info_message="", delete_start_audio=None, delete_end_audio=None):
         def get_audio_file():
             keys_list = list(self.json_data.keys())
             return keys_list[index]
-            
 
-        def get_audio_text(audio_name):
+        def get_JSON_reference(audio_name):
             return self.json_data[audio_name]['text']
 
         def create_segment_group(segments):
             new_segment_group = []
-            visible_segments = len(segments)
+
+            visible_segments = len(segments) if segments else 0  
 
             for i in range(total_segment_components):
-                visible = i < visible_segments
-                text = segments[i]['text'] if visible else ''
-                start = segments[i]['start'] if visible else ''
-                end = segments[i]['end'] if visible else ''
+                # If there are no segments at all, then all boxes should be invisible. Otherwise, only the right amount of boxes should be visible.
+                visible = False if visible_segments == 0 else i < visible_segments
 
-               
+                # Get the right keys for the text, start and end
+                text = segments[i].get('text', '') if visible and segments else ''
+                start = segments[i].get('start', '') if visible and segments else ''
+                end = segments[i].get('end', '') if visible and segments else ''
 
+                # Create UI components
+                # Components should be visible only if they correspond to an actual segment
                 seg_textbox = gr.Textbox(visible=visible, value=text, label=f'Segment {i+1} Text', interactive=True, scale=50)
                 start_number = gr.Textbox(visible=visible, value=str(start), label=f'Segment {i+1} Start', interactive=True)
                 end_number = gr.Textbox(visible=visible, value=str(end), label=f'Segment {i+1} End', interactive=True)
 
+                # Extend the group with the new components
                 new_segment_group.extend([seg_textbox, start_number, end_number])
-            
+
             return new_segment_group
 
+        # Initializing segment creation
+        new_segment_group = create_segment_group(None) # Initialize with default empty segments
 
-        new_segment_group = []
+        # Retrieving the current amount of entries in the JSON
         audio_amount = len(self.json_data)
 
-         # We make sure the user cannot try and go to before the beginning of audios
+        # Clearing the "delete multiple" start and end textboxes according to the right situation
+        if self.keep_start_audio == False:
+            delete_start_audio = gr.update(value="")
+
+        if self.keep_end_audio == False:
+            delete_end_audio = gr.update(value="")
+
         if index < 0:
             index = 0  
         elif index >= audio_amount:
             index = audio_amount - 1  # If the user tries to go to a page out of range, he's drawn back to the last audio
-        
+
+        # Updating the UI with the correct audio information
         if 0 <= index < audio_amount:
             audio_file = get_audio_file()
             audio_name = os.path.basename(audio_file)
             audio_path = os.path.join(json_folder, 'audios', audio_file)
-            audio_text = get_audio_text(audio_name)
-            curent_page_label = f"Current Audio: {index + 1}/{audio_amount}"
+            JSON_reference = get_JSON_reference(audio_name)
+            current_page_label = f"Current Audio: {index + 1}/{audio_amount}"
+
+            if not JSON_reference:  # If 'text' key is empty
+                info_message = "There are no segments or text available for this audio."
+                return [audio_path, audio_name, index + 1, current_page_label, JSON_reference, info_message, delete_start_audio, delete_end_audio] + new_segment_group
+
+            # Loading the segments related to the audio
+            segments = self.json_data[audio_name].get('segments', [])
+            new_segment_group = create_segment_group(segments)
 
 
-            segments = self.json_data[audio_name]['segments']
+
+            return [audio_path, audio_name, index + 1, current_page_label, JSON_reference, info_message, delete_start_audio, delete_end_audio] + new_segment_group
 
 
-            for i in range(len(segments)):
-                new_segment_group.extend(create_segment_group(segments))
-
-            return audio_path, audio_name, index + 1, curent_page_label, audio_text, info_message, *new_segment_group
-        
+        # If there was a problem in loading the audio
         new_segment_group = all_segment_boxes
-        return None, "", 1, "Audio not available", "", "Something went wrong. Check whether your JSON file is empty.", *new_segment_group
+        audio_path = None
+        audio_name = ""
+        current_page_label = "Audio not available"
+        JSON_reference = ""
+        info_message = "Something went wrong. Check whether your JSON file is empty."
+
+        return [audio_path, audio_name, 1, current_page_label, JSON_reference, info_message, delete_start_audio, delete_end_audio] + new_segment_group
             
             
 
