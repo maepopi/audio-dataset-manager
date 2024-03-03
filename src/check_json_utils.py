@@ -8,6 +8,8 @@ class AudioJsonHandler():
     def __init__(self):
         self.json_data = None
         self.json_path = None
+        self.keep_start_audio = False
+        self.keep_end_audio = False
     
     def get_json(self, path,):
         return next(
@@ -39,6 +41,12 @@ class AudioJsonHandler():
         keys_to_delete = [
             key for key in self.json_data.keys() if start_key <= key <= end_key
         ]
+
+        # In this particular case, the delete start and end boxes are not empty but we WANT them to be cleared after clicking the button.
+        # That is why we needed to add these two boolean as class variables, to be able to manage the clearing depending on the process
+        
+        self.keep_start_audio = False
+        self.keep_end_audio = False
 
         return self.delete_entries(json_folder, index, keys_to_delete, total_segment_components, audios_to_delete=len(keys_to_delete))
 
@@ -147,19 +155,30 @@ class AudioJsonHandler():
         return 'The JSON was saved.'
 
 
-    def handle_pagination(self, page, json_folder, delta, total_segment_components):
-        new_index = page -1 + delta # We adjust for zero-based indexing, and the delta determines which way we move
+    def handle_pagination(self, page, json_folder, delete_start_audio, delete_end_audio, delta=None, go_to=None, total_segment_components=None):
+        new_index = page - 1
+
+        if delta:
+            new_index = new_index + delta # We adjust for zero-based indexing, and the delta determines which way we move
+        
+        elif go_to:
+            new_index = go_to
+
+        # Checking whether there's something written in the delete start and end audio textboxes. If they are not empty, we need to keep them 
+        self.keep_start_audio = delete_start_audio != ""
+        self.keep_end_audio = delete_end_audio != ""
+
         # Check if the new_index is within the valid range
         if 0 <= new_index < len(self.json_data):
-            return self.update_UI(new_index, json_folder, total_segment_components=total_segment_components)
+            return self.update_UI(new_index, json_folder, total_segment_components=total_segment_components, delete_start_audio=delete_start_audio, delete_end_audio=delete_end_audio)
         else:
             # If the new_index is out of bounds, return current state without change
             # To achieve this, subtract delta to revert to original page index
-            return self.update_UI(page - 1, json_folder, total_segment_components=total_segment_components)  # page - 1 adjusts back to zero-based index
+            return self.update_UI(page - 1, json_folder, delete_start_audio, delete_end_audio, total_segment_components=total_segment_components)  # page - 1 adjusts back to zero-based index
 
  
             
-    def update_UI(self, index, json_folder, *all_segment_boxes, total_segment_components=None, info_message=""):
+    def update_UI(self, index, json_folder, *all_segment_boxes, total_segment_components=None, info_message="", delete_start_audio=None, delete_end_audio=None):
         def get_audio_file():
             keys_list = list(self.json_data.keys())
             return keys_list[index]
@@ -193,9 +212,12 @@ class AudioJsonHandler():
         # Retrieving the current amount of entries in the JSON
         audio_amount = len(self.json_data)
 
-        # Clearing the "delete multiple" start and end textboxes
-        delete_start_audio = gr.update(value="")
-        delete_end_audio = gr.update(value="")
+        # Clearing the "delete multiple" start and end textboxes according to the right situation
+        if self.keep_start_audio == False:
+            delete_start_audio = gr.update(value="")
+        
+        if self.keep_end_audio == False:
+            delete_end_audio = gr.update(value="")
 
          # We make sure the user cannot try and go to before the beginning of audios
         if index < 0:
