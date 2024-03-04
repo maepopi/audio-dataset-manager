@@ -82,9 +82,9 @@ def create_fix_transcription_interface():
                 
                 delete_multiple = gr.Button('Delete multiple audios from dataset')
                 delete_start_audio = gr.Textbox(label='Start audio',
-                                                info='Write the name of the audio from which to start deleting (including the start audio) ')
+                                                info='Write the index of the audio from which to start deleting (including the start audio) ')
                 delete_end_audio = gr.Textbox(label='End audio',
-                                                info='Write the name of the audio from which to stop deleting (including the end audio) ')
+                                                info='Write the index of the audio from which to stop deleting (including the end audio) ')
                 
 
 
