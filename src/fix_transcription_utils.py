@@ -210,7 +210,7 @@ class AudioJsonHandler():
             for i, segment in enumerate(segments):
                 # The list makes the texts, starts and ends follow by groups of three. We need to parse with a delta.
                 j = i*3
-                segment['text'], segment['start'], segment['end'] = all_segment_boxes[j:j+3] # Each time we're assigning a slice of a list to the right keys
+                segment['text'], segment['start'], segment['end'] = cleaned_textboxes[j:j+3] # Each time we're assigning a slice of a list to the right keys
 
             file.seek(0)
             json.dump(self.json_data, file, indent=4)
