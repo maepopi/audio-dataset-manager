@@ -6,12 +6,13 @@ Last year I started diving into AI through voice cloning. My goal was to clone t
 
 I started playing around with the excellent [Tortoise-TTS](https://github.com/neonbjb/tortoise-tts), and then I quickly stumbled upon the tool I've been using since : [MRQ's fantastic ai-voice-cloning repo](https://git.ecker.tech/mrq/ai-voice-cloning). It is basically based on Tortoise-TTS, but allows for finetuning Tortoise base model. 
 
-I've been working with this tool ever since, and I've come up with pretty good results. 
+I've been working with this tool ever since, and I've come up with pretty good results. For instance, I've been working on cloning the voice of Regis from the Witcher 3 Blood and Wine, a character I really love, played by the excellent Mark Noble. Here are a few results to give you an idea of what I could obtain by finetuning Tortoise base model thanks to MRQ's repo :
 
-**Example of finetuning Tortoise base model to reproduce Mark Noble's voice as Emiel Regis (The Witcher 3):**
-*Original* : https://github.com/maepopi/audio-dataset-manager/assets/35258413/2fb73eb7-bed9-4ec0-9863-132e1a587556
-*Generated with Tortoise base model* : https://github.com/maepopi/audio-dataset-manager/assets/35258413/457d4a0a-5782-4cc6-a31b-3e424d7c1599
-*Finetuned with MRQ ai-voice_cloning* : https://github.com/maepopi/audio-dataset-manager/assets/35258413/666215f2-241e-4488-a7f2-d154b5f73ce5
+[*Original clip from the game*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/2fb73eb7-bed9-4ec0-9863-132e1a587556)
+
+[*Clip generated with Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/457d4a0a-5782-4cc6-a31b-3e424d7c1599)
+
+[*Clip generated from finetuned Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/666215f2-241e-4488-a7f2-d154b5f73ce5)
 
 To make this last model, I had to select, curate and label a lot of audio data, especially from audiobooks. This is where I got the idea of making this present tool, to help me go faster in the management of dozens of hours of audio. Thus, I hereby present you, the Audio Dataset Manager!
 
