@@ -141,11 +141,16 @@ def create_readme_interface():
 
                 ### Analyze audios
 
-                The feature of this tab is not fully developped yet. But basically, it will allow you to input an audio, and analyze its silences : what is the smallest silence period, what is the average silence period, and the maximum (all in seconds). This is supposed to help you define the minimum duration (in seconds, still) for which a silence must last to be considered actual silence. This value will then be used in the Split Audio tab to split your audio along the silences defined by this value as a time threshold.
+                The feature of this tab is not fully developped yet. But basically, it will allow you to input an audio, and analyze its silences : what is 
+                the smallest silence period, what is the average silence period, and the maximum (all in seconds). This is supposed to help you define the 
+                minimum duration (in seconds, still) for which a silence must last to be considered actual silence. This value will then be used in the Split
+                Audio tab to split your audio along the silences defined by this value as a time threshold.
 
                 ### Convert audios
 
-                This tab allows you to convert audios so they can be processed later in the tool. You need either .mp3 or .wav. In **Input Folder**, paste the path towards the folder holding your audios to be converted. In **Output Folder**, write the output path. Under **Export Format**, choose the format you want your audios to be converted. Then hit **Convert**.
+                This tab allows you to convert audios so they can be processed later in the tool. You need either .mp3 or .wav. In **Input Folder**, paste 
+                the path towards the folder holding your audios to be converted. In **Output Folder**, write the output path. Under **Export Format**, 
+                choose the format you want your audios to be converted. Then hit **Convert**.
 
 
                 
@@ -153,9 +158,12 @@ def create_readme_interface():
 
                 ### Need to know
 
-                This tab allows you to split your audio into smaller clips for training. MRQ's ai-voice-cloning tool indeed requires clips between **0.6 and 11 seconds** in the training dataset. So if you have an audiobook, well, you'll have to split it.
+                This tab allows you to split your audio into smaller clips for training. MRQ's ai-voice-cloning tool indeed requires clips between **0.6 
+                and 11 seconds** in the training dataset. So if you have an audiobook, well, you'll have to split it.
 
-                In **Input Folder**, put the path to the folder where your audios to be segmented are located. Then, in **Silence duration**, put the minimum duration for a silence to be considered a silence, and tagged to be split in the middle. For instance, if you have a sentence like this :
+                In **Input Folder**, put the path to the folder where your audios to be segmented are located. Then, in **Silence duration**, put the 
+                minimum duration for a silence to be considered a silence, and tagged to be split in the middle. For instance, if you have a sentence like 
+                this :
 
                 > *"I went to the bar, and ordered a drink. [Silence of 0.8 seconds] The barman smiled and went to work."*
 
@@ -169,16 +177,23 @@ def create_readme_interface():
 
                 In **Output Folder**, put the folder you want your splitted audios to be dropped in. 
 
-                If you check **Use transcription in the segmented audio names**, your segments will be transcribed and a portion of the transcription will be written in the name of the segment. This helps me manage my clips later on. If you check that option, you will have to choose which **Whisper model** you want to use for the transcription. Be careful: the larger the model you use, the more time it will take.
+                If you check **Use transcription in the segmented audio names**, your segments will be transcribed and a portion of the transcription 
+                will be written in the name of the segment. This helps me manage my clips later on. If you check that option, you will have to choose which 
+                **Whisper model** you want to use for the transcription. Be careful: the larger the model you use, the more time it will take.
 
 
                 ### More technical detail about the splitting
 
-                The actual method behind the splitting is this. First, Ffmpeg's detect silence method is called, and looks for silences that are minimum 0.8 seconds. Then, another function comes and defines a midpoint (or cut point) at the middle of that silence. Then, another function comes and cuts the audio at this mid point.
+                The actual method behind the splitting is this. First, Ffmpeg's detect silence method is called, and looks for silences that are minimum 
+                0.8 seconds. Then, another function comes and defines a midpoint (or cut point) at the middle of that silence. Then, another function comes 
+                and cuts the audio at this mid point.
 
-                However, there are a lot of cases where cutting at the midpoint will still result in segments that are over 11 seconds. In this case, there's a recursive call of the detect silence function that comes to play : the time threshold is divided by two. If new silences are detected, they are processed and then recut. If no other silences are detected, then the time threshold is divided by two again.
+                However, there are a lot of cases where cutting at the midpoint will still result in segments that are over 11 seconds. In this case, there's 
+                a recursive call of the detect silence function that comes to play : the time threshold is divided by two. If new silences are detected, they 
+                are processed and then recut. If no other silences are detected, then the time threshold is divided by two again.
 
-                In the end, if the segment cannot be cut under 11 seconds, it will still get outputted in a folder called "Non Usable". That folder will hold the segments that are under 0.6 seconds, or over 11 seconds. You can then re-cut the long segments yourself.
+                In the end, if the segment cannot be cut under 11 seconds, it will still get outputted in a folder called "Non Usable". That folder will hold 
+                the segments that are under 0.6 seconds, or over 11 seconds. You can then re-cut the long segments yourself.
 
                 
 

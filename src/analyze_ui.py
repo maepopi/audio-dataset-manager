@@ -5,6 +5,16 @@ def create_analyze_audio_interface():
     with gr.Blocks() as interface:
         
         with gr.Tab('Analyze audios'):
+            analyze_readme_text = '''
+                The feature of this tab is not fully developped yet. But basically, it will allow you to input an audio, and analyze its silences.
+
+            '''
+
+            analyze_readme_textbox = gr.Markdown(label="What is this tab about?", value=analyze_readme_text)
+
+
+
+
             with gr.Row():
                 with gr.Column():
 
@@ -22,6 +32,12 @@ def create_analyze_audio_interface():
                 analyze_btn.click(fn=utils.analyze_main, inputs=[files_input], outputs=analyze_out)
         
         with gr.Tab('Convert audios'):
+            convert_readme_text = '''
+                This tab allow you to convert audios from their original format to either .mp3 or .wav.
+            '''
+
+            convert_readme_text = gr.Markdown(label="What is this tab about?", value=convert_readme_text)
+        
             with gr.Row():
                 with gr.Column():
 

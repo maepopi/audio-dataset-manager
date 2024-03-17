@@ -7,6 +7,13 @@ handler = utils.AudioJsonHandler()
 
 def create_fix_transcription_interface():
     with gr.Blocks() as interface:
+        fix_readme_text = '''
+                This tab allows you to manage your data : check the transcriptions, fix them and delete audios from your dataset.
+
+            '''
+
+        fix_readme_textbox = gr.Markdown(label="What is this tab about?", value=fix_readme_text)
+
         # Constants
         ALL_SEGMENT_BOXES = []
         TOTAL_SEGMENT_COMPONENTS = 10

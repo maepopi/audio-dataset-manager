@@ -6,6 +6,12 @@ import transcribe_utils as utils
 
 def create_transcribe_audio_interface():
     with gr.Blocks() as interface:
+        transcribe_readme_text = '''
+                This tab allows you to transcribe your audios.
+
+            '''
+
+        transcribe_readme_text = gr.Markdown(label="What is this tab about?", value=transcribe_readme_text)
         
         choice_radio = gr.Radio(label='Which tool do you want to use for transcribing?', choices=['This tool', 'MRQ ai-voice-cloning'])
 
