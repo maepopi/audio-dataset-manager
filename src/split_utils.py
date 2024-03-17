@@ -279,7 +279,7 @@ def move_usable_files(source, usable_folder, not_selected_folder):
 
             print(f"Moved: {filename}, Duration: {duration} seconds")
 
-            return output_logs
+    return output_logs
 
 
 def get_files(folder):
