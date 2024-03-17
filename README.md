@@ -23,13 +23,17 @@ I've been working with this tool ever since, and I've come up with pretty good r
 
 To make this last model, I had to select, curate and label a lot of audio data, especially from audiobooks. This is where I got the idea of making this present tool, to help me go faster in the management of dozens of hours of audio. Thus, I hereby present you, the Audio Dataset Manager!
 
+The main goal of this tool is to help prepare your dataset **prior to training** with an external tool such as MRQ's ai-voice-cloning tool. It DOES NOT provide any actual training or finetuning features.
+
+Here is a very quick [video tutorial](https://www.youtube.com/watch?v=1MVc2B4nwk8) if you're in a hurry 😂
+
 
 ## 🔧 Installation
 
 ### 🐧 Linux
 
 #### Conda environment
-I personally use Conda a lot so I'd recommend using it here. Download and install [Anaconda] (https://www.anaconda.com/download). Then, create a new environment like this:
+I personally use Conda a lot so I'd recommend using it here. Download and install [Anaconda](https://www.anaconda.com/download). Then, create a new environment like this:
 
 ```conda create env --name your-env-name```
 
@@ -66,13 +70,15 @@ or
 
 The process should be pretty much the same than under Linux, but I hit some snags in my testing so I'll tell you exactly what I did to make it work.
 
-Download and install [Anaconda] (https://www.anaconda.com/download). Then, create a new environment like this:
+Download and install [Anaconda](https://www.anaconda.com/download). Then, create a new environment like this:
 
 ```conda create env --name your-env-name python==3.9```
 
 Of course, replace "your-env-name" by the name of your environment. In my case it's "audio-dataset-manager. Once that's done, activate it like this:
 
 ```conda activate your-env-name```
+
+Install ffmpeg and add it to your PATH. You have a tutorial [here](https://www.youtube.com/watch?v=jZLqNocSQDM).
 
 #### Clone this repo
 
@@ -138,7 +144,6 @@ In **Output Folder**, put the folder you want your splitted audios to be dropped
 
 If you check **Use transcription in the segmented audio names**, your segments will be transcribed and a portion of the transcription will be written in the name of the segment. This helps me manage my clips later on. If you check that option, you will have to choose which **Whisper model** you want to use for the transcription. Be careful: the larger the model you use, the more time it will take.
 
-
 #### More technical detail about the splitting
 
 The actual method behind the splitting is this. First, Ffmpeg's detect silence method is called, and looks for silences that are minimum 0.8 seconds. Then, another function comes and defines a midpoint (or cut point) at the middle of that silence. Then, another function comes and cuts the audio at this mid point.
@@ -146,6 +151,17 @@ The actual method behind the splitting is this. First, Ffmpeg's detect silence m
 However, there are a lot of cases where cutting at the midpoint will still result in segments that are over 11 seconds. In this case, there's a recursive call of the detect silence function that comes to play : the time threshold is divided by two. If new silences are detected, they are processed and then recut. If no other silences are detected, then the time threshold is divided by two again.
 
 In the end, if the segment cannot be cut under 11 seconds, it will still get outputted in a folder called "Non Usable". That folder will hold the segments that are under 0.6 seconds, or over 11 seconds. You can then re-cut the long segments yourself.
+
+#### Reindexing the clips after splitting
+As some of the clips might end up in "Non Usable", you might find yourself with some gaps in the names of your audios. For instance, you might have, in your "Usable" folder :
+  - Audio001
+  - Audio002
+  - Audio004
+
+Here, "Audio003" has been moved in the "Non Usable" folder, so your paddex indexes are not reallmy sequential anymore. This is actually fine, it won't likely bother you in the next stages of the tool. But if you really want all your clips to be strictly sequential, you can use the **Reindex** feature. 
+
+Choose the **input folder** where your "Usable" clips are (or the audios you want to reindex), and hit **Reindex audios**. This will backup all your clips with their previous names, and then rename them with sequential padded indexes.
+
 
 
 ### 💬 Transcribe audio
@@ -171,7 +187,7 @@ If you choose this, you'll have a little guide as to how to use MRQ ai-voice-clo
 
 
 ### 👀 Check JSON and audios
-This is the tab that you will mostly spend most time in. It is designed to review your segmented audios as well as their retranscription. You can correct the retranscription, update the JSON, and delete audios from your dataset.
+This is the tab that you will mostly spend most time in. It is designed to review your segmented audios as well as their retranscription. You can correct the retranscription, update the JSON, and delete audios from your dataset. This is the **last step** to prepare your dataset before sending it to a training tool. 
 
 #### Input data
 Start by putting the path to your JSON and audios. Your folder **must** be organized like this : a folder named "audios" with your audios inside, and beside the "audios" folder, your transcription JSON.
