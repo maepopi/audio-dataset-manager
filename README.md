@@ -14,8 +14,7 @@ I've been working with this tool ever since, and I've come up with pretty good r
 
 **Clip generated with Tortoise base model**:
 
-[*Clip generated with Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/457d4a0a-5782-4cc6-a31b-3e424d7c1599)
-
+[*Clip generated with Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/24012f9c-c18e-40ce-bca7-d394bd88b6ec)
 
 **Clip generated from finetuned Tortoise base model**:
 
