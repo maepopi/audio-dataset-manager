@@ -24,11 +24,11 @@ def create_readme_interface():
                 of Regis from the Witcher 3 Blood and Wine, a character I really love, played by the excellent Mark Noble. Here are a few results to give you an 
                 idea of what I could obtain by finetuning Tortoise base model thanks to MRQ's repo:
 
-                >[*Original clip from the game*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/2fb73eb7-bed9-4ec0-9863-132e1a587556)
-                >
-                >[*Clip generated with Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/457d4a0a-5782-4cc6-a31b-3e424d7c1599)
-                >
-                >[*Clip generated from finetuned Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/666215f2-241e-4488-a7f2-d154b5f73ce5)
+                > [*Original clip from the game*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/2fb73eb7-bed9-4ec0-9863-132e1a587556)
+
+                > [*Clip generated with Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/24012f9c-c18e-40ce-bca7-d394bd88b6ec)
+
+                > [*Clip generated from finetuned Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/cd40b8cf-1be4-4340-a26f-d8d1a3b8e656)
 
                 To make this last model, I had to select, curate and label a lot of audio data, especially from audiobooks. This is where I got the idea of 
                 making this present tool, to help me go faster in the management of dozens of hours of audio.
@@ -195,6 +195,19 @@ def create_readme_interface():
                 In the end, if the segment cannot be cut under 11 seconds, it will still get outputted in a folder called "Non Usable". That folder will hold 
                 the segments that are under 0.6 seconds, or over 11 seconds. You can then re-cut the long segments yourself.
 
+                #### Reindexing the clips after splitting
+                As some of the clips might end up in "Non Usable", you might find yourself with some gaps in the names of your audios. For instance, you 
+                might have, in your "Usable" folder :
+                - Audio001
+                - Audio002
+                - Audio004
+
+                Here, "Audio003" has been moved in the "Non Usable" folder, so your paddex indexes are not reallmy sequential anymore. This is actually 
+                fine, it won't likely bother you in the next stages of the tool. But if you really want all your clips to be strictly sequential, you can 
+                use the **Reindex** feature. 
+
+                Choose the **input folder** where your "Usable" clips are (or the audios you want to reindex), and hit **Reindex audios**. This will backup 
+                all your clips with their previous names, and then rename them with sequential padded indexes.
                 
 
                 ## 💬 Transcribe audio
