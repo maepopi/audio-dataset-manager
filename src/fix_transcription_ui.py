@@ -26,7 +26,7 @@ def create_fix_transcription_interface():
 
         # Load JSON section
         with gr.Row():
-                json_folder = gr.Textbox(label='Path to your retranscription json and clips', scale=50)
+                json_folder = gr.Textbox(label='Input folder', info='Path to your retranscription json and clips', scale=50)
                 submit_button = gr.Button('Load') # This is supposed to load the audios, but also the json file and the ebook if they exist
 
 
