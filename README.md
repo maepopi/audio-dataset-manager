@@ -85,10 +85,6 @@ Install ffmpeg and add it to your PATH. You have a tutorial [here](https://www.y
 
 Clone this repository using this command:
 
-
-https://github.com/maepopi/audio-dataset-manager/assets/35258413/2eaef23c-d725-4502-9755-4187450db0d6
-
-
 ```git clone https://github.com/maepopi/Audio_Dataset_Manager.git```
 
 #### Setup our environment
