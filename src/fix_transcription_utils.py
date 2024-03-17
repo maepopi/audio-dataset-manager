@@ -161,6 +161,7 @@ class AudioJsonHandler():
                         discarded_json_file.seek(0)
                         json.dump(discarded_json_data, discarded_json_file, indent=4)
                         discarded_json_file.truncate()
+        
                       
         def delete_from_audios(discard_folder):
             audio_folder = os.path.join(json_folder, "audios")
@@ -191,11 +192,15 @@ class AudioJsonHandler():
         delete_from_audios(discard_folder)
                
 
-        if audios_to_delete == 1:
-            log_message = f'{audio_names} was successfully deleted from the dataset.'
+        if audios_to_delete:
+            if audios_to_delete == 1:
+                log_message = f'{audio_names} was successfully deleted from the dataset.'
+            
+            else:
+                log_message = f'{audio_names} were successfully deleted from the dataset.'
         
         else:
-            log_message = f'{audio_names} were successfully deleted from the dataset.'
+            log_message = f'There are no audios to be deleted.'
 
         
         return self.update_UI(index - 1, json_folder, total_segment_components=total_segment_components, info_message=log_message)
