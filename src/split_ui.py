@@ -1,5 +1,26 @@
 import gradio as gr
 import split_utils
+import os
+
+
+def auto_fill_output(input_folder):
+    export_folder_name = 'Split_Output'
+    
+    # Ensure path compatibility and remove trailing slash if present
+    input_folder = os.path.normpath(input_folder)
+
+    # Check if 'input' or 'inputs' is in the path
+    if "input" in input_folder.lower():
+        input_parent = os.path.dirname(input_folder)
+        export_folder = os.path.join(input_parent, export_folder_name)
+    else:
+        export_folder = os.path.join(input_folder, export_folder_name)
+
+    # Ensure the export folder exists
+    os.makedirs(export_folder, exist_ok=True)
+    
+    return export_folder
+
 
 
 def use_transcription(choice):
@@ -38,9 +59,14 @@ def create_split_audio_interface():
                             info = 'Minium duration of a silence to be defined as a split point (in seconds)')
 
                 
-                output_folder = gr.Textbox(
-                label = 'Output Folder',
-                info = 'Type the path where you want to output the segmented audios')
+                with gr.Row():
+                    export_folder = output_folder = gr.Textbox(
+                        label = 'Output Folder',
+                        scale = 70,
+                        info = 'Type the path where you want to output the segmented audios. Check "Auto-path" if you want the export \
+                                folder to be inferred automatically.')
+                    
+                    auto_path_btn = gr.Button("Auto-path")
 
                 transcription_choice = gr.Checkbox(label="Use transcription in the segmented audio names", 
                                                 info='Each audio will be transcribed and a portion of the transcription will be used in the name of the file. Takes longer. ')
@@ -53,6 +79,7 @@ def create_split_audio_interface():
             with gr.Column():
                 out = gr.TextArea(label='Console Output')
 
+            auto_path_btn.click(fn=auto_fill_output, inputs=input_folder, outputs=export_folder)
             transcription_choice.change(fn=use_transcription, inputs=transcription_choice, outputs = model_choice)
             split_btn.click(fn=split_utils.split_main, inputs=[input_folder, silence_float, output_folder, transcription_choice, model_choice], outputs=out)
 
