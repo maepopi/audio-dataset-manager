@@ -256,6 +256,8 @@ def get_audio_duration(file_path):
 
 
 def move_usable_files(source, usable_folder, not_selected_folder):
+    output_logs =  []
+
     if not os.path.exists(usable_folder):
         os.makedirs(usable_folder)
 
@@ -270,10 +272,14 @@ def move_usable_files(source, usable_folder, not_selected_folder):
 
             if 0.65 <= duration <= 11:
                 shutil.move(file_path, os.path.join(usable_folder, filename))
+                
             else:
                 shutil.move(file_path, os.path.join(not_selected_folder, filename))
+                output_logs.append(f'{file_path} was put aside because it is {duration} seconds. Moved to not selected.')
 
             print(f"Moved: {filename}, Duration: {duration} seconds")
+
+            return output_logs
 
 
 def get_files(folder):
@@ -331,8 +337,8 @@ def split_main(filepath, time_threshold, output_folder, transcription_choice, tr
 
         usable_folder = os.path.join(process_config.output_folder, 'Usable')
         non_usable_folder = os.path.join(process_config.output_folder,  'NonUsable')
-        move_usable_files(process_config.output_folder, usable_folder, non_usable_folder)
+        logs = move_usable_files(process_config.output_folder, usable_folder, non_usable_folder)
 
 
 
-    return('Your audios were successfully splitted.')
+    return f'Your audios were successfully split.\n\n' + "\n".join(logs)
