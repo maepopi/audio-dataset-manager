@@ -75,6 +75,10 @@ def create_split_audio_interface():
                 split_btn = gr.Button("Split audios")
 
                 with gr.Group():
+                    reindex_input = gr.Textbox(
+                            label = 'Segmented audios to reindex',
+                            info = 'Type the path of your audios to be reindexed')
+                    
                     reindex_info = gr.Markdown(value='> Once your audios are split, you can reindex them by clicking this button.')
                     reindex_btn = gr.Button('Reindex audios')
 
@@ -86,7 +90,7 @@ def create_split_audio_interface():
             auto_path_btn.click(fn=auto_fill_output, inputs=input_folder, outputs=export_folder)
             transcription_choice.change(fn=use_transcription, inputs=transcription_choice, outputs = model_choice)
             split_btn.click(fn=split_utils.split_main, inputs=[input_folder, silence_float, export_folder, transcription_choice, model_choice], outputs=out)
-            reindex_btn.click(fn=split_utils.reindex_files, inputs=export_folder, outputs=out)
+            reindex_btn.click(fn=split_utils.reindex_files, inputs=reindex_input, outputs=out)
 
                  
                 

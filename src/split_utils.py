@@ -270,12 +270,12 @@ def move_usable_files(source, usable_folder, not_selected_folder):
             file_path = os.path.join(source, filename)
             duration = get_audio_duration(file_path)
 
-            if 0.65 <= duration <= 11:
+            if 0.61 <= duration <= 11:
                 shutil.move(file_path, os.path.join(usable_folder, filename))
                 
             else:
                 shutil.move(file_path, os.path.join(not_selected_folder, filename))
-                output_logs.append(f'{file_path} was put aside because it is {duration} seconds. Moved to not selected.')
+                output_logs.append(f'{filename} was put aside because it is {duration} seconds. Moved to not selected.')
 
             print(f"Moved: {filename}, Duration: {duration} seconds")
 
