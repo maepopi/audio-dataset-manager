@@ -35,6 +35,10 @@ def create_readme_interface():
 
                 Thus, I hereby present you, the **Audio Dataset Manager**!
 
+                The main goal of this tool is to help prepare your dataset **prior to training** with an external tool such as MRQ's ai-voice-cloning tool. It DOES NOT provide any actual training or finetuning features.
+
+                Here is a very quick [video tutorial](https://www.youtube.com/watch?v=1MVc2B4nwk8) if you're in a hurry 😂
+
 
             '''
 
@@ -234,7 +238,9 @@ def create_readme_interface():
 
                 
                 ## 👀 Check JSON and audios
-                This is the tab that you will mostly spend most time in. It is designed to review your segmented audios as well as their retranscription. You can correct the retranscription, update the JSON, and delete audios from your dataset.
+                This is the tab that you will mostly spend most time in. It is designed to review your segmented audios as well as their retranscription. 
+                You can correct the retranscription, update the JSON, and delete audios from your dataset. This is the **last step** to prepare your dataset 
+                before sending it to a training tool. 
 
                 ### Input data
                 Start by putting the path to your JSON and audios. Your folder **must** be organized like this : a folder named "audios" with your audios inside, and beside the "audios" folder, your transcription JSON.
