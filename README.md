@@ -19,7 +19,8 @@ I've been working with this tool ever since, and I've come up with pretty good r
 
 **Clip generated from finetuned Tortoise base model**:
 
-[*Clip generated from finetuned Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/666215f2-241e-4488-a7f2-d154b5f73ce5)
+[*Clip generated from finetuned Tortoise base model*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/cd40b8cf-1be4-4340-a26f-d8d1a3b8e656)
+
 
 To make this last model, I had to select, curate and label a lot of audio data, especially from audiobooks. This is where I got the idea of making this present tool, to help me go faster in the management of dozens of hours of audio. Thus, I hereby present you, the Audio Dataset Manager!
 
@@ -83,6 +84,10 @@ Install ffmpeg and add it to your PATH. You have a tutorial [here](https://www.y
 #### Clone this repo
 
 Clone this repository using this command:
+
+
+https://github.com/maepopi/audio-dataset-manager/assets/35258413/2eaef23c-d725-4502-9755-4187450db0d6
+
 
 ```git clone https://github.com/maepopi/Audio_Dataset_Manager.git```
 
