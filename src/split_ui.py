@@ -60,10 +60,10 @@ def create_split_audio_interface():
 
                 
                 with gr.Row():
-                    export_folder = output_folder = gr.Textbox(
+                    export_folder =  gr.Textbox(
                         label = 'Output Folder',
                         scale = 70,
-                        info = 'Type the path where you want to output the segmented audios. Check "Auto-path" if you want the export \
+                        info = 'Type the path where you want to output the segmented audios. Click "Auto-path" if you want the export \
                                 folder to be inferred automatically.')
                     
                     auto_path_btn = gr.Button("Auto-path")
@@ -81,7 +81,7 @@ def create_split_audio_interface():
 
             auto_path_btn.click(fn=auto_fill_output, inputs=input_folder, outputs=export_folder)
             transcription_choice.change(fn=use_transcription, inputs=transcription_choice, outputs = model_choice)
-            split_btn.click(fn=split_utils.split_main, inputs=[input_folder, silence_float, output_folder, transcription_choice, model_choice], outputs=out)
+            split_btn.click(fn=split_utils.split_main, inputs=[input_folder, silence_float, export_folder, transcription_choice, model_choice], outputs=out)
 
     
     return interface

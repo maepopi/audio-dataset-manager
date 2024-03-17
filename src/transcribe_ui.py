@@ -1,7 +1,25 @@
 
 import gradio as gr
 import transcribe_utils as utils
+import os
 
+def auto_fill_output(input_folder):
+    export_folder_name = 'Transcription_Output'
+    
+    # Ensure path compatibility and remove trailing slash if present
+    input_folder = os.path.normpath(input_folder)
+
+    # Check if 'input' or 'inputs' is in the path
+    if "input" in input_folder.lower():
+        input_parent = os.path.dirname(input_folder)
+        export_folder = os.path.join(input_parent, export_folder_name)
+    else:
+        export_folder = os.path.join(input_folder, export_folder_name)
+
+    # Ensure the export folder exists
+    os.makedirs(export_folder, exist_ok=True)
+    
+    return export_folder
 
 
 def create_transcribe_audio_interface():
@@ -24,12 +42,22 @@ def create_transcribe_audio_interface():
         with internal_transcriber_group:
              with gr.Row(equal_height=True):
                 with gr.Column():
-                    input_folder = gr.Textbox(label='Path to the folder you want to transcribe')
-                    model_choice = gr.Dropdown(label='Which Whisper model do you want to use?', 
+                    input_folder = gr.Textbox(label='Input folder', info='Path to the folder you want to transcribe')
+                    model_choice = gr.Dropdown(label='Transcription model', info='Which Whisper model do you want to use?', 
                                                         choices=["tiny", "tiny.en", "base", "base.en", "small", "small.en", 
                                                                 "medium", "medium.en",
                                                                 "large", "large-v1", "large-v2", ])
-                    export_path = gr.Textbox(label='Path to the folder you want to export your transcribed json')
+                    
+                    with gr.Row():
+                        export_folder = gr.Textbox(
+                            label = 'Output Folder',
+                            scale = 70,
+                            info = 'Type the path where you want to output the transcribed json. Click "Auto-path" if you want the export \
+                                    folder to be inferred automatically.')
+                        
+                        auto_path_btn = gr.Button("Auto-path")
+
+
                     submit_button = gr.Button('Transcribe')
                 
                 with gr.Column():
@@ -60,8 +88,8 @@ def create_transcribe_audio_interface():
 
             mrq_textbox = gr.Markdown(value = instructions_text)
 
-
+        auto_path_btn.click(fn=auto_fill_output, inputs=input_folder, outputs=export_folder)
         choice_radio.change(fn=utils.choose_transcriber, inputs=[choice_radio], outputs=[internal_transcriber_group, mrq_tool_group])
-        submit_button.click(fn=utils.internal_transcriber, inputs=[input_folder, model_choice, export_path], outputs=out)
+        submit_button.click(fn=utils.internal_transcriber, inputs=[input_folder, model_choice, export_folder], outputs=out)
 
     return interface

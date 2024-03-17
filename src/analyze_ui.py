@@ -62,16 +62,16 @@ def create_analyze_audio_interface():
             with gr.Row():
                 with gr.Column():
 
-                    files_input = gr.Textbox(
+                    input_folder = gr.Textbox(
                                     label="Input Folder",
                                     info = "Write the folder to your input audios")
 
                     
                     with gr.Row():
-                        export_folder = output_folder = gr.Textbox(
+                        export_folder =  gr.Textbox(
                             label = 'Output Folder',
                             scale = 70,
-                            info = 'Type the path where you want to output the converted audios. Check "Auto-path" if you want the export \
+                            info = 'Type the path where you want to output the converted audios. Click "Auto-path" if you want the export \
                                     folder to be inferred automatically.')
                         
                         auto_path_btn = gr.Button("Auto-path")
@@ -85,7 +85,7 @@ def create_analyze_audio_interface():
                 with gr.Column():
                     convert_out=gr.TextArea(label='Console Output')
 
-                auto_path_btn.click(fn=auto_fill_output, inputs=files_input, outputs=export_folder)
-                convert_btn.click(fn=utils.convert_main, inputs=[files_input, export_folder, export_format], outputs=convert_out)
+                auto_path_btn.click(fn=auto_fill_output, inputs=input_folder, outputs=export_folder)
+                convert_btn.click(fn=utils.convert_main, inputs=[input_folder, export_folder, export_format], outputs=convert_out)
 
     return interface
