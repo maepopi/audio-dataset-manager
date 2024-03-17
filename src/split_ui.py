@@ -3,6 +3,7 @@ import split_utils
 import os
 
 
+
 def auto_fill_output(input_folder):
     export_folder_name = 'Split_Output'
     
@@ -33,21 +34,18 @@ def use_transcription(choice):
                         info='Careful: the larger the model you use, the longer the whole process will take!')
            
 
-      
-
-            
-      
-
 
 
 def create_split_audio_interface():
     with gr.Blocks() as interface:
+        
         split_readme_text = '''
                 This tab allows you to split your audios according to a specific duration of silence.
 
             '''
 
         split_readme_textbox = gr.Markdown(label="What is this tab about?", value=split_readme_text)
+
         with gr.Row():
             with gr.Column():
                 
@@ -74,7 +72,13 @@ def create_split_audio_interface():
                 model_choice = gr.Dropdown(visible=False)
 
 
-                split_btn = gr.Button("Split")
+                split_btn = gr.Button("Split audios")
+
+                with gr.Group():
+                    reindex_info = gr.Markdown(value='> Once your audios are split, you can reindex them by clicking this button.')
+                    reindex_btn = gr.Button('Reindex audios')
+
+
 
             with gr.Column():
                 out = gr.TextArea(label='Console Output')
@@ -82,6 +86,9 @@ def create_split_audio_interface():
             auto_path_btn.click(fn=auto_fill_output, inputs=input_folder, outputs=export_folder)
             transcription_choice.change(fn=use_transcription, inputs=transcription_choice, outputs = model_choice)
             split_btn.click(fn=split_utils.split_main, inputs=[input_folder, silence_float, export_folder, transcription_choice, model_choice], outputs=out)
+            reindex_btn.click(fn=split_utils.reindex_files, inputs=export_folder, outputs=out)
 
+                 
+                
     
     return interface

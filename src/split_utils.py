@@ -160,8 +160,6 @@ class AudioProcessor():
         return counter
     
 
-    
-
 
     def split_and_transcribe_audio(self, midpoints, counter=1, audio_path=None):
  
@@ -185,6 +183,9 @@ class AudioProcessor():
     
 
 
+    
+
+
 
 def instantiate_config(filepath, time_threshold, output_folder, transcription_choice, transcription_model):
     input_format = filepath.split('.')[-1].lower()
@@ -203,6 +204,50 @@ def instantiate_config(filepath, time_threshold, output_folder, transcription_ch
         transcription_model=transcription_model
         
     )
+
+def reindex_files(input_folder):
+    """
+    Renames files in the specified directory by adding a new, sequentially increasing index
+    at the beginning of each file name. Existing indices in the file names are preserved if they 
+    do not start with a '0'. A backup of original files is created before renaming to avoid accidental data loss.
+    """
+
+    # Initiate a list of renamed audios
+    output_logs = []
+
+    # Create a backup directory adjacent to the original files
+    backup_directory = os.path.join(input_folder, 'backup')
+    if not os.path.exists(backup_directory):
+        os.makedirs(backup_directory)
+    
+    # List all files in the directory
+    files = [f for f in os.listdir(input_folder) if os.path.isfile(os.path.join(input_folder, f))]
+    # Sort files to maintain the original order as much as possible
+    files.sort()
+    
+    index = 1  # Start the new indexing from 1
+    for filename in files:
+        # Remove numbers only if they are 'padded' (start with '0')
+        cleaned_filename = re.sub(r'(?:_|\b)0+\d*(?=_|\b)', '', filename)  # Removes numbers starting with '0'
+
+        # Construct the new filename with a leading sequential index
+        new_filename = f"{index:06d}_{cleaned_filename}"  
+        old_path = os.path.join(input_folder, filename)
+        new_path = os.path.join(input_folder, new_filename)
+        
+        # Backup the original file
+        shutil.copy2(old_path, backup_directory)
+        
+        # Rename the file with the new index
+        os.rename(old_path, new_path)
+
+        # add the file to the renamed list for output printing
+        output_logs.append(f'Renamed "{filename}" to "{new_filename}"')
+        
+        index += 1  # Increment the index for the next file
+    
+    return "\n\n".join(output_logs)
+
 
     
 def get_audio_duration(file_path):
