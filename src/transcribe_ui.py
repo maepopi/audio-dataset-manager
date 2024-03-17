@@ -7,7 +7,8 @@ import transcribe_utils as utils
 def create_transcribe_audio_interface():
     with gr.Blocks() as interface:
         transcribe_readme_text = '''
-                This tab allows you to transcribe your audios.
+                This tab allows you to transcribe your audios. If the buttons below do not show anything, try toggling them both. 
+                It should work eventually 😅!
 
             '''
 
