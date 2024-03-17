@@ -1,5 +1,26 @@
 import gradio as gr
 import analyze_utils as utils
+import os
+
+def auto_fill_output(input_folder):
+    export_folder_name = 'Conversion_Output'
+    
+    # Ensure path compatibility and remove trailing slash if present
+    input_folder = os.path.normpath(input_folder)
+
+    # Check if 'input' or 'inputs' is in the path
+    if "input" in input_folder.lower():
+        input_parent = os.path.dirname(input_folder)
+        export_folder = os.path.join(input_parent, export_folder_name)
+    else:
+        export_folder = os.path.join(input_folder, export_folder_name)
+
+    # Ensure the export folder exists
+    os.makedirs(export_folder, exist_ok=True)
+    
+    return export_folder
+
+
 
 def create_analyze_audio_interface():
     with gr.Blocks() as interface:
@@ -46,9 +67,14 @@ def create_analyze_audio_interface():
                                     info = "Write the folder to your input audios")
 
                     
-                    export_folder = output_folder = gr.Textbox(
-                        label = 'Output Folder',
-                        info = 'Type the path where you want to output the converted audios')
+                    with gr.Row():
+                        export_folder = output_folder = gr.Textbox(
+                            label = 'Output Folder',
+                            scale = 70,
+                            info = 'Type the path where you want to output the converted audios. Check "Auto-path" if you want the export \
+                                    folder to be inferred automatically.')
+                        
+                        auto_path_btn = gr.Button("Auto-path")
                     
                     export_format = gr.Dropdown(label='Export format',
                                                 info= 'What is the output format you want?',
@@ -59,7 +85,7 @@ def create_analyze_audio_interface():
                 with gr.Column():
                     convert_out=gr.TextArea(label='Console Output')
 
-                    
+                auto_path_btn.click(fn=auto_fill_output, inputs=files_input, outputs=export_folder)
                 convert_btn.click(fn=utils.convert_main, inputs=[files_input, export_folder, export_format], outputs=convert_out)
 
     return interface
