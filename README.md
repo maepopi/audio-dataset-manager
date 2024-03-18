@@ -160,7 +160,7 @@ As some of the clips might end up in "Non Usable", you might find yourself with 
   - Audio002
   - Audio004
 
-Here, "Audio003" has been moved in the "Non Usable" folder, so your paddex indexes are not reallmy sequential anymore. This is actually fine, it won't likely bother you in the next stages of the tool. But if you really want all your clips to be strictly sequential, you can use the **Reindex** feature. 
+Here, "Audio003" has been moved in the "Non Usable" folder, so your paddex indexes are not really sequential anymore. This is actually fine, it won't likely bother you in the next stages of the tool. But if you really want all your clips to be strictly sequential, you can use the **Reindex** feature. 
 
 Choose the **input folder** where your "Usable" clips are (or the audios you want to reindex), and hit **Reindex audios**. This will backup all your clips with their previous names, and then rename them with sequential padded indexes.
 
