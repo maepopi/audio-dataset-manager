@@ -15,7 +15,8 @@ class AudioJsonHandler():
         return next(
         (file for file in os.listdir(path) if file.endswith('.json') 
                                             and 'backup' not in file 
-                                            and 'discarded' not in file), None)
+                                            and 'discarded' not in file
+                                            and 'unsanitized' not in file), None)
 
     def load_and_init(self, json_folder, *all_segment_boxes, total_segment_components):
         original_json_file = self.get_json(json_folder)
