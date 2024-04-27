@@ -165,7 +165,7 @@ class AudioJsonHandler():
         
                       
         def delete_from_audios(discard_folder):
-            audio_folder = os.path.join(json_folder, "audios")
+            audio_folder = os.path.join(json_folder, "audio")
             deleted_audio_folder = os.path.join(discard_folder, "Discarded_Audios")
             os.makedirs(deleted_audio_folder, exist_ok=True)
 

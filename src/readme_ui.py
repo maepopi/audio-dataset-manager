@@ -243,13 +243,13 @@ def create_readme_interface():
                 before sending it to a training tool. 
 
                 ### Input data
-                Start by putting the path to your JSON and audios. Your folder **must** be organized like this : a folder named "audios" with your audios inside, and beside the "audios" folder, your transcription JSON.
+                Start by putting the path to your JSON and audios. Your folder **must** be organized like this : a folder named "audio" with your audios inside, and beside the "audios" folder, your transcription JSON.
 
                 > - Folder
-                > - audios
-                >     - clip1.wav
-                >     - clip2.wav
-                > - whisper.json
+                >> - audio
+                >>     - clip1.wav
+                >>     - clip2.wav
+                >> - whisper.json
 
 
                 Hit **Load** when you're ready. This will create a copy of your original JSON, and rename it with "backup" in the title. This way, when you make changes on the original JSON all along the way, your backup will remain untouched.
