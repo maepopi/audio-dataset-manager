@@ -88,11 +88,15 @@ def create_fix_transcription_interface():
 
                 
                 delete_multiple = gr.Button('Delete multiple audios from dataset')
-                delete_start_audio = gr.Textbox(label='Start audio',
-                                                info='Write the index of the audio from which to start deleting (including the start audio) ')
-                delete_end_audio = gr.Textbox(label='End audio',
-                                                info='Write the index of the audio from which to stop deleting (including the end audio) ')
-                
+
+                with gr.Column():
+                        delete_start_audio = gr.Textbox(label='Start audio',
+                                                        info='Write the index of the audio from which to start deleting (including the start audio) ')
+                        delete_end_audio = gr.Textbox(label='End audio',
+                                                        info='Write the index of the audio from which to stop deleting (including the end audio) ')
+                        index_format = gr.Number(label='Index format',
+                                                 info='How many digits are there in your index. Default : 6')
+                        
 
 
 
@@ -210,17 +214,19 @@ def create_fix_transcription_interface():
                                     *ALL_SEGMENT_BOXES]
                            )
 
-        delete_multiple.click(fn=lambda json_folder, page_input, delete_start_audio, delete_end_audio: 
+        delete_multiple.click(fn=lambda json_folder, page_input, delete_start_audio, delete_end_audio, index_format: 
                            handler.delete_multiple(json_folder,
                                                 page_input,
                                                 delete_start_audio,
                                                 delete_end_audio,
+                                                index_format,
                                                 total_segment_components=TOTAL_SEGMENT_COMPONENTS), 
 
                            inputs=[json_folder, 
                                    page_input, 
                                    delete_start_audio, 
-                                   delete_end_audio],
+                                   delete_end_audio,
+                                   index_format],
 
                            outputs=[audio_player, 
                                     audio_name_box, 

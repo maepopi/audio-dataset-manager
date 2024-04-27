@@ -40,15 +40,14 @@ class AudioJsonHandler():
 
         return self.update_UI(0, json_folder, *all_segment_boxes, total_segment_components=total_segment_components)
 
-    def delete_multiple(self, json_folder, index, start_audio, end_audio, total_segment_components):
+    def delete_multiple(self, json_folder, index, start_audio, end_audio, index_format, total_segment_components):
         # In this particular case, the delete start and end boxes are not empty but we WANT them to be cleared after clicking the button.
         # That is why we needed to add these two boolean as class variables, to be able to manage the clearing depending on the process
         self.keep_start_audio = False
         self.keep_end_audio = False
-        digit_format = "04d"
 
-        # Handling potential errors
-         # Convert start and end audio inputs to integers and format them
+        index_format = '06d' if index_format is None else f'0{str(index_format)}d'
+        
         try:
             start_audio_int = int(start_audio)
             end_audio_int = int(end_audio)
@@ -56,7 +55,7 @@ class AudioJsonHandler():
         except ValueError:
             # If values are not ints, stay on same page and raise an error. Index-1 ensure the page doesn't change
             return self.update_UI(index-1, json_folder, total_segment_components=total_segment_components, info_message="Start and End values must be integers.")
-        
+
         if start_audio_int > 999999 or end_audio_int > 999999:
             return self.update_UI(index-1, json_folder, total_segment_components=total_segment_components, info_message="Start and End values must be within 6 digits.")
 
@@ -64,10 +63,10 @@ class AudioJsonHandler():
             return self.update_UI(index-1, json_folder, total_segment_components=total_segment_components, info_message="Start value must be smaller than End value.")
 
         # Formatting the keys
-        formatted_start_index= f"{start_audio_int:{digit_format}}"
-        formatted_end_index = f"{end_audio_int:{digit_format}}"
+        formatted_start_index= f"{start_audio_int:{index_format}}"
+        formatted_end_index = f"{end_audio_int:{index_format}}"
         start_key, end_key = None, None
- 
+
 
         # Iterate through all keys to find exact matches for the start and end indices
         for key in self.json_data.keys():
@@ -88,12 +87,12 @@ class AudioJsonHandler():
 
             if end_key is None:
                 return self.update_UI(index-1, json_folder, total_segment_components=total_segment_components, info_message="End key couldn't be found.")
-            
+
             if start_key <= key <= end_key:
                 keys_to_delete.append(key)
 
 
-    
+
 
         return self.delete_entries(json_folder, index, keys_to_delete, total_segment_components, audios_to_delete=len(keys_to_delete))
 
