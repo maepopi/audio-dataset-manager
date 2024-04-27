@@ -192,7 +192,7 @@ If you choose this, you'll have a little guide as to how to use MRQ ai-voice-clo
 This is the tab that you will mostly spend most time in. It is designed to review your segmented audios as well as their retranscription. You can correct the retranscription, update the JSON, and delete audios from your dataset. This is the **last step** to prepare your dataset before sending it to a training tool. 
 
 #### Input data
-Start by putting the path to your JSON and audios. Your folder **must** be organized like this : a folder named "audios" with your audios inside, and beside the "audios" folder, your transcription JSON.
+Start by putting the path to your JSON and audios. Your folder **must** be organized like this : a folder named "audio" with your audios inside, and beside the "audio" folder, your transcription JSON.
 
 - Folder
   - audios
