@@ -8,6 +8,7 @@ class AudioJsonHandler():
     def __init__(self):
         self.json_data = None
         self.json_path = None
+        self.audio_folder = None
         self.keep_start_audio = False
         self.keep_end_audio = False
     
@@ -21,6 +22,7 @@ class AudioJsonHandler():
     def load_and_init(self, json_folder, *all_segment_boxes, total_segment_components):
         original_json_file = self.get_json(json_folder)
         original_json_path = os.path.join(json_folder, original_json_file)
+        self.audio_folder = os.path.join(json_folder, "audio")
 
         # Create a backup
         json_name = os.path.splitext(original_json_file)[0]
@@ -43,6 +45,7 @@ class AudioJsonHandler():
         # That is why we needed to add these two boolean as class variables, to be able to manage the clearing depending on the process
         self.keep_start_audio = False
         self.keep_end_audio = False
+        digit_format = "04d"
 
         # Handling potential errors
          # Convert start and end audio inputs to integers and format them
@@ -61,8 +64,8 @@ class AudioJsonHandler():
             return self.update_UI(index-1, json_folder, total_segment_components=total_segment_components, info_message="Start value must be smaller than End value.")
 
         # Formatting the keys
-        formatted_start_index= f"{start_audio_int:06d}"
-        formatted_end_index = f"{end_audio_int:06d}"
+        formatted_start_index= f"{start_audio_int:{digit_format}}"
+        formatted_end_index = f"{end_audio_int:{digit_format}}"
         start_key, end_key = None, None
  
 
@@ -165,13 +168,13 @@ class AudioJsonHandler():
         
                       
         def delete_from_audios(discard_folder):
-            audio_folder = os.path.join(json_folder, "audio")
+            
             deleted_audio_folder = os.path.join(discard_folder, "Discarded_Audios")
             os.makedirs(deleted_audio_folder, exist_ok=True)
 
-            for audio in os.listdir(audio_folder):
+            for audio in os.listdir(self.audio_folder):
                 if audio in audio_names:
-                    src = os.path.join(audio_folder, audio)
+                    src = os.path.join(self.audio_folder, audio)
                     dst = os.path.join(deleted_audio_folder, audio)
 
                     try:
@@ -312,7 +315,7 @@ class AudioJsonHandler():
         if 0 <= index < audio_amount:
             audio_file = get_audio_file()
             audio_name = os.path.basename(audio_file)
-            audio_path = os.path.join(json_folder, 'audios', audio_file)
+            audio_path = os.path.join(json_folder, self.audio_folder, audio_file) #the name of the audio folder should NOT be hard coded
             JSON_reference = get_JSON_reference(audio_name)
             current_page_label = f"Current Audio: {index + 1}/{audio_amount}"
 
