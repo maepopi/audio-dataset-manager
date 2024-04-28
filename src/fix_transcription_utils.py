@@ -218,7 +218,22 @@ class AudioJsonHandler():
             for i, segment in enumerate(segments):
                 # The list makes the texts, starts and ends follow by groups of three. We need to parse with a delta.
                 j = i*3
-                segment['text'], segment['start'], segment['end'] = cleaned_textboxes[j:j+3] # Each time we're assigning a slice of a list to the right keys
+
+                try:
+                    # Ensure start and end times are floats so they are written as floats in the JSON
+                    start_time = float(cleaned_textboxes[j+1])
+                    end_time = float(cleaned_textboxes[j+2])
+
+                except ValueError as e:
+                    # Handle the error or log it, depending on your preference
+                    print(f"Error converting time values to float: {e}")
+                    continue  # Skip this iteration and continue with the next
+        
+
+                # Assigning the cleaned and converted values to the segments
+                segment['text'] = cleaned_textboxes[j]
+                segment['start'] = start_time
+                segment['end'] = end_time
 
             file.seek(0)
             json.dump(self.json_data, file, indent=4)

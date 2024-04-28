@@ -72,8 +72,8 @@ def create_fix_transcription_interface():
             for _ in range(TOTAL_SEGMENT_COMPONENTS):
                 with gr.Row():
                     seg_textbox = gr.Textbox(visible=False, scale=50)
-                    seg_start = gr.Textbox(visible=False)
-                    seg_end = gr.Textbox(visible=False)
+                    seg_start = gr.Number(visible=False)
+                    seg_end = gr.Number(visible=False)
 
                 ALL_SEGMENT_BOXES.extend((seg_textbox, seg_start, seg_end))
 
