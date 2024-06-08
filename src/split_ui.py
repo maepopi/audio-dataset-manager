@@ -5,6 +5,19 @@ import os
 
 
 def auto_fill_output(input_folder):
+    """
+        Automatically generate an output folder path based on the input folder.
+        If the input folder contains 'input' or 'inputs' in its name, the output folder
+        will be created in the parent directory of the input folder. Otherwise, it will
+        be created within the input folder.
+
+        Args:
+            input_folder (str): The path to the input folder.
+
+        Returns:
+            str: The path to the created output folder.
+    """
+
     export_folder_name = 'Split_Output'
     
     # Ensure path compatibility and remove trailing slash if present
@@ -25,6 +38,16 @@ def auto_fill_output(input_folder):
 
 
 def use_transcription(choice):
+      """
+        Show or hide the dropdown for selecting the Whisper model based on the transcription choice.
+
+        Args:
+            choice (bool): Whether to use transcription or not.
+
+        Returns:
+            gr.Dropdown: The Whisper model dropdown, visible or hidden based on the choice.
+      """
+      
       visible = bool(choice)
       
       return gr.Dropdown(label='Which Whisper model do you want to use for the transcription?', 
@@ -37,6 +60,13 @@ def use_transcription(choice):
 
 
 def create_split_audio_interface():
+    """
+        Create the Gradio interface for splitting and reindexing audio files.
+
+        Returns:
+            gr.Blocks: The Gradio interface for splitting and reindexing audios.
+    """
+     
     with gr.Blocks() as interface:
         
         split_readme_text = '''

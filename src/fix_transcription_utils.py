@@ -4,6 +4,9 @@ import gradio as gr
 import shutil
 
 class AudioJsonHandler():
+    """
+        A handler for managing audio files and their corresponding JSON data.
+    """
     
     def __init__(self):
         self.json_data = None
@@ -13,6 +16,16 @@ class AudioJsonHandler():
         self.keep_end_audio = False
     
     def get_json(self, path,):
+        """
+            Retrieve the first JSON file from the specified directory that doesn't contain
+            'backup', 'discarded', or 'unsanitized' in its filename.
+
+            Args:
+                path (str): The directory to search for JSON files.
+
+            Returns:
+                str: The filename of the JSON file if found, else None.
+        """
         return next(
         (file for file in os.listdir(path) if file.endswith('.json') 
                                             and 'backup' not in file 
@@ -20,6 +33,18 @@ class AudioJsonHandler():
                                             and 'unsanitized' not in file), None)
 
     def load_and_init(self, json_folder, *all_segment_boxes, total_segment_components):
+        """
+            Load the initial JSON file and create a backup.
+
+            Args:
+                json_folder (str): The folder containing the JSON file.
+                all_segment_boxes (tuple): All segment boxes.
+                total_segment_components (int): The total number of segment components.
+
+            Returns:
+                list: Updated UI components after initialization.
+        """
+
         original_json_file = self.get_json(json_folder)
         original_json_path = os.path.join(json_folder, original_json_file)
         self.audio_folder = os.path.join(json_folder, "audio")
@@ -41,6 +66,21 @@ class AudioJsonHandler():
         return self.update_UI(0, json_folder, *all_segment_boxes, total_segment_components=total_segment_components)
 
     def delete_multiple(self, json_folder, index, start_audio, end_audio, index_format, total_segment_components):
+        """
+            Delete multiple entries from the JSON file and update the UI accordingly.
+
+            Args:
+                json_folder (str): The folder containing the JSON file.
+                index (int): The current index in the UI.
+                start_audio (str): The start audio index.
+                end_audio (str): The end audio index.
+                index_format (str): The format of the index.
+                total_segment_components (int): The total number of segment components.
+
+            Returns:
+                list: Updated UI components after deletion.
+        """
+
         # In this particular case, the delete start and end boxes are not empty but we WANT them to be cleared after clicking the button.
         # That is why we needed to add these two boolean as class variables, to be able to manage the clearing depending on the process
         self.keep_start_audio = False
@@ -96,35 +136,36 @@ class AudioJsonHandler():
 
         return self.delete_entries(json_folder, index, keys_to_delete, total_segment_components, audios_to_delete=len(keys_to_delete))
 
-
-
-       
-
-        # start_key = f"{start_audio_int:06d}"
-        # end_key = f"{end_audio_int:06d}"
-
-        # # Sort keys and find the range to delete
-        # sorted_keys = sorted(self.json_data.keys())
-        # try:
-        #     start_index = sorted_keys.index(next(filter(lambda key: start_key in key, sorted_keys), None))
-        #     end_index = sorted_keys.index(next(filter(lambda key: end_key in key, sorted_keys), None))
-        # except ValueError:
-        #     return self.update_UI(index-1, json_folder, total_segment_components=total_segment_components, info_message="Specified audio range not found in the dataset.")
-
-        # keys_to_delete = sorted_keys[start_index:end_index + 1]  # Determine keys to delete
-
-        # # Proceed with the deletion process
-        # return self.delete_entries(json_folder, index, keys_to_delete, total_segment_components, audios_to_delete=len(keys_to_delete))
-
         
 
 
     def delete_entries(self, json_folder, index, audio_names, total_segment_components, audios_to_delete=1):
+        """
+            Delete entries from the JSON and audio folders and update the UI accordingly.
+
+            Args:
+                json_folder (str): The folder containing the JSON file.
+                index (int): The current index in the UI.
+                audio_names (list): The names of audio entries to delete.
+                total_segment_components (int): The total number of segment components.
+                audios_to_delete (int): The number of audios to delete.
+
+            Returns:
+                list: Updated UI components after deletion.
+        """
+         
         # Part of this function gets repeated with save json, needs refactor
         def delete_from_JSON(discard_folder):
+            """
+                Deletes specified entries from the JSON data, moves them to a discard folder, and updates related files.
+
+                Args:
+                    discard_folder (str): The folder path where the discarded entries will be moved.
+            """
+                
             discarded_entries_path = os.path.join(discard_folder, 'discarded_entries.json')
             discarded_entries = {}
-           
+
             # Opening the JSON and loading its contents
             with open(self.json_path, 'r+') as file:
                 self.json_data = json.load(file)
@@ -133,13 +174,13 @@ class AudioJsonHandler():
                 if len(self.json_data) <= 1:
                     log_message = 'Cannot delete the last audio of the dataset'
                     return self.update_UI(index, json_folder, total_segment_components=total_segment_components, info_message=log_message)
-                
+
                 # Remove the specified entries and store them for later
                 for audio_name in audio_names:
-                    
+
                     if audio_name in self.json_data:
                         discarded_entries[audio_name] = self.json_data.pop(audio_name)
-                    
+
                     else:
                         print(f'Audio name {audio_name} not found in JSON data')
 
@@ -149,13 +190,13 @@ class AudioJsonHandler():
 
                 # Truncating at the current position of the cursor so that no extra information is added by accident
                 file.truncate()
-            
+
             # If the discarded JSON entry file doesn't exist, create it and add the deleted entries if there are any
             if discarded_entries:
                 if not os.path.exists(discarded_entries_path):
                     with open(discarded_entries_path, 'w') as discarded_json_file:
                         json.dump(discarded_entries, discarded_json_file, indent=4)
-                
+
                 # If the discarded JSON entry file exists, oppen it and append the deleted entry
                 else:
                     with open(discarded_entries_path, 'r+') as discarded_json_file:
@@ -164,10 +205,16 @@ class AudioJsonHandler():
                         discarded_json_file.seek(0)
                         json.dump(discarded_json_data, discarded_json_file, indent=4)
                         discarded_json_file.truncate()
-        
-                      
+
+
         def delete_from_audios(discard_folder):
-            
+            """
+                Moves specified audio files from the main audio folder to a designated discard folder.
+
+                Args:
+                    discard_folder (str): The folder path where the discarded audio files will be moved.
+            """
+
             deleted_audio_folder = os.path.join(discard_folder, "Discarded_Audios")
             os.makedirs(deleted_audio_folder, exist_ok=True)
 
@@ -178,7 +225,7 @@ class AudioJsonHandler():
 
                     try:
                         shutil.move(src, dst)
-                    
+
                     except Exception as e:
                         print(f"Error moving {src} to {dst}: {e}")
 
@@ -193,24 +240,51 @@ class AudioJsonHandler():
 
         delete_from_JSON(discard_folder)
         delete_from_audios(discard_folder)
-               
+
 
         if audios_to_delete:
             if audios_to_delete == 1:
                 log_message = f'{audio_names} was successfully deleted from the dataset.'
-            
+
             else:
                 log_message = f'{audio_names} were successfully deleted from the dataset.'
-        
-        else:
-            log_message = f'There are no audios to be deleted.'
 
-        
+        else:
+            log_message = 'There are no audios to be deleted.'
+
+
         return self.update_UI(index - 1, json_folder, total_segment_components=total_segment_components, info_message=log_message)
 
 
     def save_json(self, json_folder, text, audio_name, *all_segment_boxes):
+        """
+            Save updates to the JSON file with new text and segment data.
+
+            Args:
+                json_folder (str): The folder containing the JSON file.
+                text (str): The updated text for the audio.
+                audio_name (str): The name of the audio entry to update.
+                all_segment_boxes (tuple): The segment data to update.
+
+            Returns:
+                str: A confirmation message after saving the JSON.
+        """
+                
         def process_json(file, text, audio_name, cleaned_textboxes):
+            """
+                Processes the JSON file by updating the text and segment information for a specific audio file.
+
+                Args:
+                    file (file): The JSON file to be processed.
+                    text (str): The new text to be assigned to the audio file.
+                    audio_name (str): The name of the audio file to be updated.
+                    cleaned_textboxes (list): A list of cleaned text and time values for segments.
+
+                Raises:
+                    ValueError: If there is an error converting time values to float.
+            """
+            
+
             self.json_data = json.load(file)
             self.json_data[audio_name]['text'] = text
             segments = self.json_data[audio_name]['segments']
@@ -225,9 +299,8 @@ class AudioJsonHandler():
                     end_time = float(cleaned_textboxes[j+2])
 
                 except ValueError as e:
-                    # Handle the error or log it, depending on your preference
                     print(f"Error converting time values to float: {e}")
-                    continue  # Skip this iteration and continue with the next
+                    continue  # Skip this iteration if error, and continue with the next
         
 
                 # Assigning the cleaned and converted values to the segments
@@ -252,6 +325,23 @@ class AudioJsonHandler():
 
 
     def handle_pagination(self, page, json_folder, delete_start_audio, delete_end_audio, delta=None, go_to=None, total_segment_components=None):
+        """
+            Handle pagination of audio entries, adjusting the current index based on user interaction.
+
+            Args:
+                page (int): The current page number.
+                json_folder (str): The folder containing the JSON file.
+                delete_start_audio (str): The start audio deletion index.
+                delete_end_audio (str): The end audio deletion index.
+                delta (int, optional): The change in page number to apply. Defaults to None.
+                go_to (int, optional): The specific page number to go to. Defaults to None.
+                total_segment_components (int, optional): The total number of segment components. Defaults to None.
+
+            Returns:
+                list: Updated UI components based on the new page index.
+        """
+
+
         new_index = page - 1
 
         if delta:
@@ -274,14 +364,53 @@ class AudioJsonHandler():
 
             
     def update_UI(self, index, json_folder, *all_segment_boxes, total_segment_components=None, info_message="", delete_start_audio=None, delete_end_audio=None):
+        """
+            Update the UI based on the current audio index.
+
+            Args:
+                index (int): The current index of the audio entry.
+                json_folder (str): The folder containing the JSON file.
+                all_segment_boxes (tuple): All segment boxes.
+                total_segment_components (int, optional): The total number of segment components. Defaults to None.
+                info_message (str, optional): Additional information message to display. Defaults to "".
+                delete_start_audio (str, optional): The start audio deletion index. Defaults to None.
+                delete_end_audio (str, optional): The end audio deletion index. Defaults to None.
+
+            Returns:
+                list: Updated UI components based on the current audio index.
+        """
         def get_audio_file():
+            """
+                Returns the key at the specified index from the JSON data.
+
+                Returns:
+                    str: The key at the specified index from the JSON data.
+            """
             keys_list = list(self.json_data.keys())
             return keys_list[index]
 
         def get_JSON_reference(audio_name):
+            """
+                Returns the text associated with the provided audio name from the JSON data.
+
+                Args:
+                    audio_name (str): The name of the audio file.
+
+                Returns:
+                    str: The text associated with the provided audio name from the JSON data.
+            """
             return self.json_data[audio_name]['text']
 
         def create_segment_group(segments):
+            """
+                Creates a group of UI components for each segment with text, start, and end values.
+
+                Args:
+                    segments (list): A list of segment dictionaries containing text, start, and end values.
+
+                Returns:
+                    list: A list of UI components for each segment with corresponding text, start, and end values.
+            """
             new_segment_group = []
 
             visible_segments = len(segments) if segments else 0  
