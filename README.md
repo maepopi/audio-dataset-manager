@@ -27,7 +27,9 @@ The main goal of this tool is to help prepare your dataset **prior to training**
 
 Here is a very quick [video tutorial](https://www.youtube.com/watch?v=1MVc2B4nwk8) if you're in a hurry 😂
 
-Note : if you combine MRQ's tool to [Retrieval based Voice Conversion](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI/blob/main/docs/en/README.en.md), you get incredible results, like this:
+
+
+If you combine MRQ's tool to [Retrieval based Voice Conversion](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI/blob/main/docs/en/README.en.md), you get incredible results, like this:
 
 [*Clip generated from finetuned Tortoise base model then ran through RVC*](https://github.com/maepopi/audio-dataset-manager/assets/35258413/0950b78f-2713-4e0a-a1f9-3b6cfdc9502a)
 
