@@ -6,6 +6,13 @@ handler = utils.AudioJsonHandler()
 
 
 def create_fix_transcription_interface():
+    """
+        Create the Gradio interface for managing and fixing audio transcriptions.
+
+        Returns:
+                gr.Blocks: The Gradio interface for fixing transcriptions.
+    """
+
     with gr.Blocks() as interface:
         fix_readme_text = '''
                 This tab allows you to manage your data : check the transcriptions, fix them and delete audios from your dataset.

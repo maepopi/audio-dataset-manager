@@ -4,6 +4,15 @@ import subprocess
 
 
 def analyze_main(files):
+    """
+        Analyzes silences in audio files using ffmpeg's silencedetect output.
+
+        Args:
+            files (list): A list of audio files to analyze.
+
+        Returns:
+            str: A message indicating that the feature is not yet implemented.
+    """
     # TODO 
     # automatically analyze silences with ffmpeg = analyze the silencedetect output, make the sum of all silence durations and divide by the number
     # of silences found.
@@ -11,6 +20,17 @@ def analyze_main(files):
     return('This feature is not yet implemented 😊')
 
 def convert_main(input_folder, export_folder, export_format):
+    """
+        Converts audio files from a specified input folder to a specified export format in the export folder.
+
+        Args:
+            input_folder (str): The folder path containing the audio files to be converted.
+            export_folder (str): The folder path where the converted audio files will be saved.
+            export_format (str): The format to which the audio files will be converted.
+
+        Returns:
+            str: A message indicating that the audios were converted.
+    """
     extensions = ['.wav', '.mp3', '.m4b', '.aac', '.mp4']
     export_format = export_format.lower()
 

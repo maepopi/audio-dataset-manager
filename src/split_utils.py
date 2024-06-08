@@ -9,7 +9,9 @@ import unicodedata
 
 @dataclass
 class AudioProcess_Config():
-    """Class to store the necessary variables to processing the audio"""
+    """
+        Class to store the necessary variables to processing the audio
+    """
     filepath: str
     input_format :str
     export_format: str
@@ -20,15 +22,32 @@ class AudioProcess_Config():
     transcription_model : str
     
 class AudioProcessor():
-    ''' Class to process the audios'''
+    ''' 
+        Class to process the audios
+    '''
 
     def __init__(self, config):
+        """
+            Initialize the AudioProcessor with the given configuration.
+
+            Args:
+                config (AudioProcess_Config): The configuration for audio processing.
+        """
         self.config = config
         self.audio = AudioSegment.from_file(config.filepath)
     
     def detect_silences(self, path, time, decibel="-23dB"):
-        # path = path or self.config.filepath
-        # time = time or self.config.time
+        """
+            Detect silences in the audio file using ffmpeg.
+
+            Args:
+                path (str): Path to the audio file.
+                time (float): Duration threshold for detecting silence.
+                decibel (str): Decibel level threshold for detecting silence.
+
+            Returns:
+                list: A list of tuples containing the start and end times of detected silences.
+        """
 
         # Building the ffmpeg command for detecting silences
         command = ["ffmpeg","-i",path,"-af",f"silencedetect=n={decibel}:d={str(time)}","-f","null","-"]
@@ -85,6 +104,17 @@ class AudioProcessor():
         return list(zip(starts, ends))
     
     def transcribe_audio(self, audio_path):
+        """
+            Transcribe the given audio file using the Whisper model.
+
+            Args:
+                audio_path (str): Path to the audio file.
+
+            Returns:
+                str: The transcribed text, sanitized and truncated to 150 characters.
+        """
+
+
         model = whisper.load_model(self.config.transcription_model)
         transcription = model.transcribe(audio_path)
         transcription_text = transcription['text']
@@ -92,6 +122,20 @@ class AudioProcessor():
     
 
     def export_audio_segment(self, segment, suffix, export_format, counter):
+        """
+            Export the given audio segment to the specified format.
+
+            Args:
+                segment (AudioSegment): The audio segment to export.
+                suffix (str): The suffix for the file name.
+                export_format (str): The format to export the audio segment.
+                counter (int): The counter for numbering the files.
+
+            Returns:
+                int: The incremented counter.
+        """
+
+        # Change the number of digits here if you need another nomenclature 
         padded_index = str(counter).zfill(6)
 
         # Sanitize prefix and suffix: replace spaces with '_', remove special characters, and avoid consecutive underscores
@@ -109,6 +153,19 @@ class AudioProcessor():
         return counter + 1
     
     def process_segment(self, audio, start_point, end_point, counter, export_format):
+        """
+            Process a segment of audio, splitting further if needed and transcribing.
+
+            Args:
+                audio (AudioSegment): The audio to process.
+                start_point (float): The start time of the segment.
+                end_point (float): The end time of the segment.
+                counter (int): The counter for numbering the files.
+                export_format (str): The format to export the audio segment.
+
+            Returns:
+                int: The updated counter after processing the segment.
+        """
 
         # Note: silence periods correspond to the starts and ends of silences. It's the actual timestamps of the silences. 
         # Midpoints, on the other hand, correspond to the timestamp at the middle of these silences: this is where we want to split the silence.
@@ -162,6 +219,17 @@ class AudioProcessor():
 
 
     def split_and_transcribe_audio(self, midpoints, counter=1, audio_path=None):
+        """
+            Split the audio at the given midpoints and transcribe the segments.
+
+            Args:
+                midpoints (list): The list of midpoints to split the audio.
+                counter (int, optional): The counter for numbering the files. Defaults to 1.
+                audio_path (str, optional): The path to the audio file. Defaults to None.
+
+            Returns:
+                int: The updated counter after processing all segments.
+        """
  
         audio_path = audio_path or self.config.filepath
         audio = AudioSegment.from_file(audio_path)
@@ -188,6 +256,19 @@ class AudioProcessor():
 
 
 def instantiate_config(filepath, time_threshold, output_folder, transcription_choice, transcription_model):
+    """
+        Instantiate the configuration for audio processing.
+
+        Args:
+            filepath (str): The path to the audio file.
+            time_threshold (float): The time threshold for silence detection.
+            output_folder (str): The folder to save the output files.
+            transcription_choice (bool): Whether to transcribe the audio or not.
+            transcription_model (str): The transcription model to use.
+
+        Returns:
+            AudioProcess_Config: The configuration for audio processing.
+    """
     input_format = filepath.split('.')[-1].lower()
     prefix = os.path.basename(filepath).rsplit('.', 1)[0]
     output_folder = os.path.join(output_folder, prefix)
@@ -207,9 +288,15 @@ def instantiate_config(filepath, time_threshold, output_folder, transcription_ch
 
 def reindex_files(input_folder):
     """
-    Renames files in the specified directory by adding a new, sequentially increasing index
-    at the beginning of each file name. Existing indices in the file names are preserved if they 
-    do not start with a '0'. A backup of original files is created before renaming to avoid accidental data loss.
+        Renames files in the specified directory by adding a new, sequentially increasing index
+        at the beginning of each file name. Existing indices in the file names are preserved if they 
+        do not start with a '0'. A backup of original files is created before renaming to avoid accidental data loss.
+
+        Args:
+            input_folder (str): The directory containing files to be renamed.
+
+        Returns:
+            str: A log of the renamed files.
     """
 
     # Initiate a list of renamed audios
@@ -219,43 +306,61 @@ def reindex_files(input_folder):
     backup_directory = os.path.join(input_folder, 'backup')
     if not os.path.exists(backup_directory):
         os.makedirs(backup_directory)
-    
+
     # List all files in the directory
     files = [f for f in os.listdir(input_folder) if os.path.isfile(os.path.join(input_folder, f))]
     # Sort files to maintain the original order as much as possible
     files.sort()
-    
-    index = 1  # Start the new indexing from 1
-    for filename in files:
+
+    for index, filename in enumerate(files, start=1):
         # Remove numbers only if they are 'padded' (start with '0')
         cleaned_filename = re.sub(r'(?:_|\b)0+\d*(?=_|\b)', '', filename)  # Removes numbers starting with '0'
 
         # Construct the new filename with a leading sequential index
-        new_filename = f"{index:06d}_{cleaned_filename}"  
+        new_filename = f"{index:06d}_{cleaned_filename}"
         old_path = os.path.join(input_folder, filename)
         new_path = os.path.join(input_folder, new_filename)
-        
+
         # Backup the original file
         shutil.copy2(old_path, backup_directory)
-        
+
         # Rename the file with the new index
         os.rename(old_path, new_path)
 
         # add the file to the renamed list for output printing
         output_logs.append(f'Renamed "{filename}" to "{new_filename}"')
-        
-        index += 1  # Increment the index for the next file
-    
+
     return "\n\n".join(output_logs)
 
 
     
 def get_audio_duration(file_path):
+    """
+        Get the duration of the audio file.
+
+        Args:
+            file_path (str): The path to the audio file.
+
+        Returns:
+            float: The duration of the audio file in seconds.
+    """
+
     audio = AudioSegment.from_file(file_path, format="mp3")
     return len(audio) / 1000.0  # Duration in seconds
 
 
 def move_usable_files(source, usable_folder, not_selected_folder):
+    """
+        Move audio files to 'usable' or 'not selected' folders based on their duration.
+
+        Args:
+            source (str): The source directory containing audio files.
+            usable_folder (str): The directory to move usable files.
+            not_selected_folder (str): The directory to move non-usable files.
+
+        Returns:
+            list: A log of moved files.
+    """
     output_logs =  []
 
     if not os.path.exists(usable_folder):
@@ -283,6 +388,16 @@ def move_usable_files(source, usable_folder, not_selected_folder):
 
 
 def get_files(folder):
+    """
+        Get a list of audio files in the specified folder.
+
+        Args:
+            folder (str): The directory to search for audio files.
+
+        Returns:
+            list: A list of file paths for the audio files.
+    """
+
     files = []
     allowed_extensions = ['.mp3', '.wav']
 
@@ -309,6 +424,20 @@ def get_files(folder):
 
     
 def split_main(filepath, time_threshold, output_folder, transcription_choice, transcription_model):
+    """
+        Main function to split and transcribe audio files.
+
+        Args:
+            filepath (str): The path to the audio file.
+            time_threshold (float): The time threshold for silence detection.
+            output_folder (str): The folder to save the output files.
+            transcription_choice (bool): Whether to transcribe the audio or not.
+            transcription_model (str): The transcription model to use.
+
+        Returns:
+            str: A message indicating the success or failure of the operation.
+    """
+
 
     no_silence_message = f'No silences of {time_threshold} seconds where detected. Try a shorter time period.'
     counter = 1

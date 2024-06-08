@@ -4,6 +4,19 @@ import transcribe_utils as utils
 import os
 
 def auto_fill_output(input_folder):
+    """
+        Automatically generate an output folder path based on the input folder.
+        If the input folder contains 'input' or 'inputs' in its name, the output folder
+        will be created in the parent directory of the input folder. Otherwise, it will
+        be created within the input folder.
+
+        Args:
+            input_folder (str): The path to the input folder.
+
+        Returns:
+            str: The path to the created output folder.
+    """
+     
     export_folder_name = 'Transcription_Output'
     
     # Ensure path compatibility and remove trailing slash if present
@@ -23,6 +36,13 @@ def auto_fill_output(input_folder):
 
 
 def create_transcribe_audio_interface():
+    """
+        Create the Gradio interface for transcribing audio files.
+
+        Returns:
+            gr.Blocks: The Gradio interface for transcribing audios.
+    """
+
     with gr.Blocks() as interface:
         transcribe_readme_text = '''
                 This tab allows you to transcribe your audios. If the buttons below do not show anything, try toggling them both. 
