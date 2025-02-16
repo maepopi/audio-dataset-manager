@@ -43,7 +43,7 @@ To achieve this, you will need to train a RVC voice model with your data. Here's
 #### Conda environment
 I personally use Conda a lot so I'd recommend using it here. Download and install [Anaconda](https://www.anaconda.com/download). Then, create a new environment like this:
 
-```conda create env --name your-env-name```
+```conda create --name your-env-name```
 
 Of course, replace "your-env-name" by the name of your environment. In my case it's "audio-dataset-manager. Once that's done, activate it like this:
 
