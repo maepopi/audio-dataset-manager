@@ -83,9 +83,11 @@ or
 
 The process should be pretty much the same than under Linux, but I hit some snags in my testing so I'll tell you exactly what I did to make it work.
 
+I would **strongly recommend using WSL**, and I will eventually make a Docker. In the meantime, try this:
+
 Download and install [Anaconda](https://www.anaconda.com/download). Then, create a new environment like this:
 
-```conda create env --name your-env-name python==3.9```
+```conda create --name your-env-name python==3.9```
 
 Of course, replace "your-env-name" by the name of your environment. In my case it's "audio-dataset-manager. Once that's done, activate it like this:
 
