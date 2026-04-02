@@ -2,8 +2,8 @@
 
 > An all-in-one tool for preparing audiobooks and large audio files for TTS training and voice cloning
 
-[![GitHub Stars](https://img.shields.io/github/stars/maepopi/Audio_Dataset_Manager?style=social)](https://github.com/maepopi/Audio_Dataset_Manager/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/maepopi/Audio_Dataset_Manager?style=social)](https://github.com/maepopi/Audio_Dataset_Manager/network/members)
+[![GitHub Stars](https://img.shields.io/github/stars/maepopi/audio-dataset-manager?style=social)](https://github.com/maepopi/audio-dataset-manager/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/maepopi/audio-dataset-manager?style=social)](https://github.com/maepopi/audio-dataset-manager/network/members)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
@@ -362,52 +362,10 @@ Special thanks to the voice cloning community for inspiration and feedback.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Whether it's:
+Contributions, bug reports, and feature requests are welcome — open an issue or submit a PR on [GitHub](https://github.com/maepopi/audio-dataset-manager).
 
-- 🐛 Bug reports
-- 💡 Feature suggestions
-- 📝 Documentation improvements
-- 🔧 Code contributions
+## License
 
-Please open an issue or submit a PR on [GitHub](https://github.com/maepopi/Audio_Dataset_Manager).
-
----
-
-## 📝 License
-
-This project is [MIT](LICENSE) licensed.
-
----
-
-## 🔗 Related Tools & Resources
-
-This tool is designed to work alongside these excellent projects:
-
-### Training & Voice Cloning
-- **[Tortoise-TTS](https://github.com/neonbjb/tortoise-tts)** - High-quality text-to-speech synthesis
-- **[ai-voice-cloning (MRQ)](https://git.ecker.tech/mrq/ai-voice-cloning)** - Fine-tuning tool for Tortoise
-- **[ai-voice-cloning (Jarod's Fork)](https://github.com/JarodMica/ai-voice-cloning)** - Enhanced version with additional features
-
-### Voice Conversion
-- **[RVC (Retrieval-based Voice Conversion)](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)** - Post-processing for enhanced quality
-- **[RVC Tutorial by Jarod Mica](https://www.youtube.com/watch?v=7tpWH8_S8es&t=615s)** - Comprehensive guide
-
-### Transcription
-- **[OpenAI Whisper](https://github.com/openai/whisper)** - Automatic speech recognition (used internally)
-
----
-
-## 💬 Support & Community
-
-- 🐛 [Report an issue](https://github.com/maepopi/Audio_Dataset_Manager/issues)
-- 💡 [Request a feature](https://github.com/maepopi/Audio_Dataset_Manager/issues)
-- ⭐ [Star this repo](https://github.com/maepopi/Audio_Dataset_Manager) if it helps you!
-- 📺 [Tutorial video](https://www.youtube.com/watch?v=1MVc2B4nwk8)
-
----
-
-<div align="center">
-Made with ❤️ for the voice cloning community
-</div>
+[MIT](LICENSE)
