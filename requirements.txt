@@ -1,3 +1,4 @@
+setuptools<70
 aiofiles==23.2.1
 altair==5.2.0
 annotated-types==0.6.0

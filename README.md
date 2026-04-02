@@ -95,8 +95,8 @@ conda activate audio-dataset-manager
 #### 2. Clone Repository
 
 ```bash
-git clone https://github.com/maepopi/Audio_Dataset_Manager.git
-cd Audio_Dataset_Manager
+git clone https://github.com/maepopi/audio-dataset-manager.git
+cd audio-dataset-manager
 ```
 
 #### 3. Install Dependencies
@@ -135,8 +135,8 @@ conda activate audio-dataset-manager
 #### 3. Clone & Install
 
 ```bash
-git clone https://github.com/maepopi/Audio_Dataset_Manager.git
-cd Audio_Dataset_Manager
+git clone https://github.com/maepopi/audio-dataset-manager.git
+cd audio-dataset-manager
 pip install -r requirements.txt
 ```
 
