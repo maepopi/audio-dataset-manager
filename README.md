@@ -410,6 +410,4 @@ This tool is designed to work alongside these excellent projects:
 
 <div align="center">
 Made with ❤️ for the voice cloning community
-<br><br>
-<sub>README documentation written with assistance from Claude AI</sub>
 </div>
